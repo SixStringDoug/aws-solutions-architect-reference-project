@@ -32,17 +32,35 @@ The frontend exists only to exercise the backend in real AWS environments.
 ## 🗂 Repository Structure
 ```
 aws-saa-project-2/
-├── artifacts/                 # Built JAR artifacts
-├── backend/                   # Spring Boot CRUD API (TaskTracker)
+├── artifacts/                      # Built JAR artifacts
+├── backend/                        # Spring Boot CRUD API (TaskTracker)
 │   └── tasktracker/
-├── docs/                      # Architecture notes & diagrams
-├── frontend/                  # React UI (Vite)
+├── docs/                           # Architecture notes & diagrams
+├── frontend/                       # React UI (Vite)
 │   └── tasktracker-ui/
-├── infra/                     # Infrastructure as Code (Terraform / CloudFormation)
-│   ├── terraform/
-│   │   ├── bootstrap/         # Remote state backend (S3 + DynamoDB lock)
-│   │   ├── env/               # Environment-specific wiring (dev)
-│   │   └── modules/           # Reusable IaC modules (S3, RDS, guardrails, etc.)
+├── infra/                          # Infrastructure as Code (Terraform / CloudFormation)
+│   ├── cloudformation/             # CFN component templates (VPC, ECS, etc.)
+│   │   ├── components/
+│   │   │   └── ecs-fargate/
+│   │   ├── stacks/
+│   │   │   └── ecs-fargate/
+│   │   └── templates/
+│   ├── docs/                       # IaC design standards, conventions, and deployment guidance
+│   ├── scripts/                    # Deployment helper scripts
+│   │   └── push-backend-image.sh
+│   └── terraform/                  # Terraform orchestration (bootstrap state, env composition, reusable modules)
+│       ├── bootstrap/
+│       │   └── state/
+│       ├── env/
+│       │   └── dev/
+│       └── modules/
+│           ├── app_config/
+│           ├── ec2_networking/
+│           ├── ecr_repository/
+│           ├── fargate_guardrails/
+│           ├── networking_vpc/
+│           ├── rds_postgres/
+│           └── s3_attachments/
 ├── CHANGELOG.md
 └── README.md
 ```
@@ -89,7 +107,7 @@ http://localhost:5173
 ```
 
 ---
-## 🏗 Infrastructure Overview (Phase 2 Complete)
+## 🏗 Infrastructure Overview (Phase 3 Complete)
 ### Remote Terraform State
 - S3 backend bucket
 - DynamoDB state locking
@@ -122,6 +140,25 @@ http://localhost:5173
 - CloudWatch log retention guardrail
 - Optional AWS Budget integration
 - NAT Gateway demonstration block (disabled by default)
+
+### Networking Foundation
+- VPC provisioned via CloudFormation nested stack
+- Public subnets across multiple AZs
+- Internet Gateway + public routing
+- Baseline security group for container workloads
+
+### Compute Foundation – ECS Fargate Skeleton
+- ECS Cluster provisioned
+- CloudWatch ECS log group integrated
+- Fargate service skeleton deployed
+- Public-IP task networking model validated
+- Terraform → CloudFormation orchestration confirmed
+
+### Container Delivery Pipeline
+- Docker multi-stage Java 17 build
+- ECR repository lifecycle verified
+- linux/amd64 image compatibility enforced
+- ECS deployment stability validated via CLI
 
 All infrastructure is:
 - Modular
@@ -197,9 +234,23 @@ No billable infrastructure deployed during Phase 1.
 - Fargate cost guardrails
 - Bootstrap + environment teardown validated
 
+### ✅ Phase 3 – Networking & Compute Basics
+- VPC baseline deployed via CloudFormation nested stack
+- Public subnets provisioned across multiple AZs
+- Internet Gateway routing configured
+- ECS cluster provisioned and verified
+- Fargate service skeleton deployed
+- CloudWatch log group wired with retention policy
+- Docker multi-stage build pipeline validated (linux/amd64)
+- ECR repository lifecycle verified
+- End-to-end image push → ECS task startup confirmed
+- CLI-based deployment verification workflow established
+- Full Terraform + CloudFormation orchestration cycle validated
+- Stand-up / tear-down workflow confirmed cost-safe
+
 The project is now ready for:
 
-### ⏭️ Phase 3: Networking & Compute Basics
+### ⏭️ Phase 4: Application Deployment & Security
 
 ---
 

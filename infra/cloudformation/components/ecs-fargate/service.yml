@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "ECS/Fargate service for TaskTracker backend"
+
+Parameters:
+  Project:
+    Type: String
+    Default: tasktracker
+
+  Environment:
+    Type: String
+    Default: dev
+
+  NamePrefix:
+    Type: String
+    Default: tasktracker-dev
+
+  ClusterName:
+    Type: String
+
+  VpcId:
+    Type: String
+
+  PublicSubnetIds:
+    Type: CommaDelimitedList
+
+  TasksSecurityGroupId:
+    Type: String
+
+  ContainerImage:
+    Type: String
+
+  ContainerPort:
+    Type: Number
+    Default: 8080
+
+  DesiredCount:
+    Type: Number
+    Default: 1
+
+Resources:
+
+  EcsTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${NamePrefix}-ecs-execution-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  EcsTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${NamePrefix}-backend"
+      Cpu: "256"
+      Memory: "512"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt EcsTaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: tasktracker-backend
+          Image: !Ref ContainerImage
+          Essential: true
+          PortMappings:
+            - ContainerPort: !Ref ContainerPort
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Sub "/${NamePrefix}/ecs"
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: backend
+
+  EcsService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub "${NamePrefix}-service"
+      Cluster: !Ref ClusterName
+      LaunchType: FARGATE
+      DesiredCount: !Ref DesiredCount
+      TaskDefinition: !Ref EcsTaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - !Ref TasksSecurityGroupId
+          Subnets: !Ref PublicSubnetIds
+
+Outputs:
+  TaskDefinitionArn:
+    Value: !Ref EcsTaskDefinition
+
+  ServiceName:
+    Value: !Ref EcsService

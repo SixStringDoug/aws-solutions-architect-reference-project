@@ -10,12 +10,24 @@ locals {
 # ------------------------------------------------------------
 # Guardrail 1: CloudWatch log group (future ECS tasks will log here)
 # Guardrail: retention is finite to prevent cost creep.
+#
+# NOTE:
+# When ECS infrastructure is deployed via CloudFormation,
+# CloudFormation owns the log group to avoid IaC ownership conflicts.
 # ------------------------------------------------------------
+variable "create_ecs_log_group" {
+  description = "Allow Terraform to create the ECS log group. Disable if CloudFormation manages ECS."
+  type        = bool
+  default     = true
+}
+
 resource "aws_cloudwatch_log_group" "ecs" {
-  count             = var.enabled ? 1 : 0
+  count = (var.enabled && var.create_ecs_log_group) ? 1 : 0
+
   name              = "/${var.name_prefix}/ecs"
   retention_in_days = var.log_retention_days
-  tags              = local.tags
+
+  tags = local.tags
 }
 
 # ------------------------------------------------------------

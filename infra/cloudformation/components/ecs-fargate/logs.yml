@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ECS logging resources
+
+Resources:
+
+  ECSLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 7
+
+Outputs:
+
+  LogGroupName:
+    Value: !Ref ECSLogGroup

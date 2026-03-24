@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "TaskTracker ECS/Fargate skeleton stack (modular)"
+
+Parameters:
+  Project:
+    Type: String
+    Default: tasktracker
+
+  Environment:
+    Type: String
+    Default: dev
+
+  NamePrefix:
+    Type: String
+    Default: tasktracker-dev
+
+  ArtifactBucket:
+    Type: String
+    Description: S3 bucket containing reusable CloudFormation components
+
+  ArtifactPrefix:
+    Type: String
+    Description: Prefix/path inside the artifact bucket where components are stored
+
+  LogRetentionDays:
+    Type: Number
+    Default: 7
+
+  ContainerImage:
+    Type: String
+    Description: Full ECR image URI including tag
+
+Resources:
+
+  Networking:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${ArtifactBucket}.s3.${AWS::Region}.amazonaws.com/${ArtifactPrefix}/components/networking-vpc.yml"
+      Parameters:
+        NamePrefix: !Ref NamePrefix
+        Project: !Ref Project
+        Environment: !Ref Environment
+
+  FargateTasksSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "Fargate tasks SG for ${NamePrefix}"
+      VpcId: !GetAtt Networking.Outputs.VpcId
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${NamePrefix}-sg-fargate-tasks"
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  EcsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/${NamePrefix}/ecs"
+      RetentionInDays: !Ref LogRetentionDays
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${NamePrefix}-cluster"
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  EcsService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub "https://${ArtifactBucket}.s3.${AWS::Region}.amazonaws.com/${ArtifactPrefix}/components/ecs-fargate/service.yml"
+      Parameters:
+        Project: !Ref Project
+        Environment: !Ref Environment
+        NamePrefix: !Ref NamePrefix
+        ClusterName: !Ref EcsCluster
+        VpcId: !GetAtt Networking.Outputs.VpcId
+        PublicSubnetIds: !GetAtt Networking.Outputs.PublicSubnetIds
+        TasksSecurityGroupId: !Ref FargateTasksSecurityGroup
+        ContainerImage: !Ref ContainerImage
+
+Outputs:
+  ClusterName:
+    Value: !Ref EcsCluster
+
+  VpcId:
+    Value: !GetAtt Networking.Outputs.VpcId
+
+  PublicSubnetIds:
+    Value: !GetAtt Networking.Outputs.PublicSubnetIds
+
+  TasksSecurityGroupId:
+    Value: !Ref FargateTasksSecurityGroup
+
+  ServiceName:
+    Description: ECS service name
+    Value: !GetAtt EcsService.Outputs.ServiceName
