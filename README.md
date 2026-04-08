@@ -79,6 +79,77 @@ aws-saa-project-2/
 
 ---
 
+## 🧪 Deployment Configurations (tfvars)
+
+### ⚠️ Important Notes
+
+- **Only one configuration should be used at a time**
+- Each configuration is independently deployable from a clean state
+- No architecture relies on another configuration
+- `.auto.tfvars` is intentionally not used to prevent unintended variable merging
+
+This project supports multiple deployment architectures using separate Terraform variable files.
+
+Each `.tfvars` file represents a complete, standalone infrastructure configuration.
+
+### Available configurations (deploy only one at a time):
+- `test-ec2.tfvars`     → EC2-based deployment
+- `test-fargate.tfvars` → ECS Fargate-based deployment
+- `test-beanstalk.tfvars` → (planned)
+
+### 🔧 Deployment Workflow
+
+All Terraform commands should be run from the project root unless otherwise specified.
+
+#### 1. Bootstrap Terraform state (required once per session)
+
+```bash
+cd infra/terraform/bootstrap/state
+terraform init
+terraform apply
+```
+
+#### 2. Deploy infrastructure
+```bash
+cd infra/terraform/env/dev
+terraform init -reconfigure
+```
+
+Choose Fargate or EC2 deployment **(choose only one configuration)**.
+
+Fargate:
+```bash
+terraform apply -var-file="test-fargate.tfvars"
+```
+
+EC2:
+```bash
+terraform apply -var-file="test-ec2.tfvars"
+```
+
+#### 3. Destroy infrastructure
+
+Choose Fargate or EC2 destroy **(choose same configuration you deployed)**.
+
+Fargate:
+```bash
+cd infra/terraform/env/dev
+terraform destroy -var-file="test-fargate.tfvars"
+```
+EC2:
+```bash
+cd infra/terraform/env/dev
+terraform destroy -var-file="test-ec2.tfvars"
+```
+
+#### 4. Destroy bootstrap resources (when finished)
+```bash
+cd infra/terraform/bootstrap/state
+terraform destroy
+```
+
+---
+
 ## 🚀 Local Development
 ### Backend
 ```bash
@@ -192,7 +263,7 @@ All infrastructure is:
 - IAM roles preferred over static credentials
 - Least-privilege IAM policies applied progressively
 - No credentials committed to source control
-- .tfvars excluded from version control
+- Only architecture tfvars files are committed; all other tfvars (e.g., secrets) are excluded from version control
 - Secrets stored in:
     - SSM SecureString (default)
     - Secrets Manager (optional)
@@ -254,7 +325,7 @@ The project is now ready for:
 
 ---
 
-##📚 Reference
+## 📚 Reference
 
 - AWS Certified Solutions Architect – Associate (SAA-C03)
 

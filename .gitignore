@@ -24,6 +24,11 @@ replay_pid*
 # -----------------------------
 # Terraform
 # -----------------------------
+# Allow architecture configs
+!test-ec2.tfvars
+!test-fargate.tfvars
+!test-beanstalk.tfvars
+
 .terraform/
 *.tfstate
 *.tfstate.*
@@ -34,6 +39,7 @@ override.tf.json
 *_override.tf.json
 *.tfvars
 terraform.tfvars
+*.tfvars.disabled
 
 # IMPORTANT:
 # Keep this file tracked for provider version consistency
