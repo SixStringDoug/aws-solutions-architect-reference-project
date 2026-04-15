@@ -74,6 +74,15 @@ Resources:
         - Name: tasktracker-backend
           Image: !Ref ContainerImage
           Essential: true
+          Environment:
+            - Name: APP_ENV
+              Value: fargate
+            - Name: DB_URL
+              Value: jdbc:postgresql://tasktracker-dev-postgres.chqao8u2qi6m.us-east-2.rds.amazonaws.com:5432/tasktrackerdevpostgres
+            - Name: DB_USERNAME
+              Value: dev_user
+            - Name: DB_PASSWORD
+              Value: dev_password_change_me
           PortMappings:
             - ContainerPort: !Ref ContainerPort
               Protocol: tcp

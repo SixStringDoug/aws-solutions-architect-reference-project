@@ -27,12 +27,19 @@ resource "aws_security_group" "db" {
   vpc_id      = data.aws_vpc.default.id
 
   # Only allow if you explicitly set allowed_cidr (default denies all)
+#   ingress {
+#     description = "Postgres"
+#     from_port   = 5432
+#     to_port     = 5432
+#     protocol    = "tcp"
+#     cidr_blocks = [var.allowed_cidr]
+#   }
   ingress {
-    description = "Postgres"
+    description = "Postgres from anywhere (temporary dev)"
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = [var.allowed_cidr]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -71,7 +78,7 @@ resource "aws_db_instance" "this_standard" {
   vpc_security_group_ids = [aws_security_group.db.id]
 
   multi_az            = var.multi_az
-  publicly_accessible = false
+  publicly_accessible = true
 
   backup_retention_period = 1
   deletion_protection     = false

@@ -23,12 +23,14 @@ module "rds" {
   db_username = var.db_username
   db_password = var.db_password
 
+  db_name = "tasktrackerdevpostgres"
+
   # Cost toggles (default cheap)
   multi_az                    = false
   use_managed_master_password = false
 
   # Safe default: deny connections unless you set a real CIDR
-  allowed_cidr = "0.0.0.0/32"
+  allowed_cidr = "0.0.0.0/0"
 }
 
 module "fargate_guardrails" {
