@@ -32,6 +32,21 @@ Parameters:
   AttachmentsBucketName:
     Type: String
 
+  DbHost:
+    Type: String
+
+  DbPort:
+    Type: String
+
+  DbName:
+    Type: String
+
+  DbUsernameParameter:
+    Type: String
+
+  DbPasswordParameter:
+    Type: String
+
   ContainerPort:
     Type: Number
     Default: 8080
@@ -55,6 +70,19 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: !Sub "${NamePrefix}-execution-ssm-access"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ReadDbParameters
+                Effect: Allow
+                Action:
+                  - ssm:GetParameters
+                  - ssm:GetParameter
+                Resource:
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${DbUsernameParameter}"
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${DbPasswordParameter}"
       Tags:
         - Key: Project
           Value: !Ref Project
@@ -118,11 +146,12 @@ Resources:
             - Name: APP_ENV
               Value: fargate
             - Name: DB_URL
-              Value: jdbc:postgresql://tasktracker-dev-postgres.chqao8u2qi6m.us-east-2.rds.amazonaws.com:5432/tasktrackerdevpostgres
+              Value: !Sub "jdbc:postgresql://${DbHost}:${DbPort}/${DbName}"
+          Secrets:
             - Name: DB_USERNAME
-              Value: dev_user
+              ValueFrom: !Ref DbUsernameParameter
             - Name: DB_PASSWORD
-              Value: dev_password_change_me
+              ValueFrom: !Ref DbPasswordParameter
           PortMappings:
             - ContainerPort: !Ref ContainerPort
               Protocol: tcp

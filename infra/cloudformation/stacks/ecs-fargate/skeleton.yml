@@ -98,6 +98,11 @@ Resources:
         TasksSecurityGroupId: !Ref FargateTasksSecurityGroup
         ContainerImage: !Ref ContainerImage
         AttachmentsBucketName: !Sub "${NamePrefix}-attachments"
+        DbHost: tasktracker-dev-postgres.chqao8u2qi6m.us-east-2.rds.amazonaws.com
+        DbPort: "5432"
+        DbName: tasktrackerdevpostgres
+        DbUsernameParameter: /tasktracker-dev/db/username
+        DbPasswordParameter: /tasktracker-dev/db/password
 
 Outputs:
   ClusterName:
