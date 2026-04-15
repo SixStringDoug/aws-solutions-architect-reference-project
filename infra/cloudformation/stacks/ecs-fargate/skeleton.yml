@@ -97,6 +97,7 @@ Resources:
         PublicSubnetIds: !GetAtt Networking.Outputs.PublicSubnetIds
         TasksSecurityGroupId: !Ref FargateTasksSecurityGroup
         ContainerImage: !Ref ContainerImage
+        AttachmentsBucketName: !Sub "${NamePrefix}-attachments"
 
 Outputs:
   ClusterName:
