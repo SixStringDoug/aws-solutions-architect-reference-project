@@ -21,7 +21,7 @@ Parameters:
     Type: String
 
   PublicSubnetIds:
-    Type: CommaDelimitedList
+    Type: String
 
   TasksSecurityGroupId:
     Type: String
@@ -54,6 +54,9 @@ Parameters:
   DesiredCount:
     Type: Number
     Default: 1
+
+  TargetGroupArn:
+    Type: String
 
 Resources:
 
@@ -170,12 +173,19 @@ Resources:
       LaunchType: FARGATE
       DesiredCount: !Ref DesiredCount
       TaskDefinition: !Ref EcsTaskDefinition
+      LoadBalancers:
+        - TargetGroupArn: !Ref TargetGroupArn
+          ContainerName: tasktracker-backend
+          ContainerPort: !Ref ContainerPort
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
           SecurityGroups:
             - !Ref TasksSecurityGroupId
-          Subnets: !Ref PublicSubnetIds
+          Subnets:
+            Fn::Split:
+              - ","
+              - !Ref PublicSubnetIds
 
 Outputs:
   TaskDefinitionArn:

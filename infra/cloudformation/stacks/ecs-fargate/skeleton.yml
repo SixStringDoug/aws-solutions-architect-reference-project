@@ -46,6 +46,12 @@ Resources:
     Properties:
       GroupDescription: !Sub "Fargate tasks SG for ${NamePrefix}"
       VpcId: !GetAtt Networking.Outputs.VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId: !Ref AlbSecurityGroup
+          Description: Allow ALB to reach ECS tasks
       SecurityGroupEgress:
         - IpProtocol: "-1"
           CidrIp: 0.0.0.0/0
@@ -58,6 +64,78 @@ Resources:
           Value: !Ref Environment
         - Key: ManagedBy
           Value: cloudformation
+
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub "ALB SG for ${NamePrefix}"
+      VpcId: !GetAtt Networking.Outputs.VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: Public HTTP access to ALB
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${NamePrefix}-sg-alb"
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "${NamePrefix}-alb"
+      Scheme: internet-facing
+      Type: application
+      SecurityGroups:
+        - !Ref AlbSecurityGroup
+      Subnets: !Split [",", !GetAtt Networking.Outputs.PublicSubnetIds]
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  AlbTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${NamePrefix}-tg"
+      Port: 8080
+      Protocol: HTTP
+      TargetType: ip
+      VpcId: !GetAtt Networking.Outputs.VpcId
+      HealthCheckEnabled: true
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      Matcher:
+        HttpCode: "200"
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  AlbListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref AlbTargetGroup
 
   EcsLogGroup:
     Type: AWS::Logs::LogGroup
@@ -86,6 +164,8 @@ Resources:
 
   EcsService:
     Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - AlbListener
     Properties:
       TemplateURL: !Sub "https://${ArtifactBucket}.s3.${AWS::Region}.amazonaws.com/${ArtifactPrefix}/components/ecs-fargate/service.yml"
       Parameters:
@@ -103,6 +183,8 @@ Resources:
         DbName: tasktrackerdevpostgres
         DbUsernameParameter: /tasktracker-dev/db/username
         DbPasswordParameter: /tasktracker-dev/db/password
+        TargetGroupArn: !Ref AlbTargetGroup
+        ContainerPort: "8080"
 
 Outputs:
   ClusterName:
@@ -120,3 +202,6 @@ Outputs:
   ServiceName:
     Description: ECS service name
     Value: !GetAtt EcsService.Outputs.ServiceName
+
+  AlbDnsName:
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
