@@ -178,7 +178,7 @@ http://localhost:5173
 ```
 
 ---
-## 🏗 Infrastructure Overview (Phase 3 Complete)
+## 🏗 Infrastructure Overview (Phase 4 Complete)
 ### Remote Terraform State
 - S3 backend bucket
 - DynamoDB state locking
@@ -218,18 +218,29 @@ http://localhost:5173
 - Internet Gateway + public routing
 - Baseline security group for container workloads
 
-### Compute Foundation – ECS Fargate Skeleton
+### Compute Platform – ECS Fargate (Production-Ready)
 - ECS Cluster provisioned
 - CloudWatch ECS log group integrated
 - Fargate service skeleton deployed
 - Public-IP task networking model validated
 - Terraform → CloudFormation orchestration confirmed
+- ALB integration
+- private task access model enforced (ALB-only ingress)
+- health check routing
+- stable deployment behavior
+
+### Application Layer
+
+- ALB → ECS → RDS architecture
+- HTTP routing via ALB
+- health check endpoint
+- zero direct task exposure
 
 ### Container Delivery Pipeline
 - Docker multi-stage Java 17 build
 - ECR repository lifecycle verified
 - linux/amd64 image compatibility enforced
-- ECS deployment stability validated via CLI
+- ECS deployment stability validated (circuit breaker + health checks)
 
 All infrastructure is:
 - Modular
@@ -253,6 +264,7 @@ All infrastructure is:
 - Default working region: us-east-2 (Ohio)
 - Environment remains fully inert when destroyed
 - Frequent stand-up / tear-down workflow prevents cost creep
+- Full deploy → validate → destroy lifecycle tested with zero residual resources
 
 ---
 
@@ -268,6 +280,9 @@ All infrastructure is:
     - SSM SecureString (default)
     - Secrets Manager (optional)
     - RDS-managed secret (optional)
+- ALB-only ingress to application layer
+- ECS tasks not publicly accessible
+- Security group isolation enforced
 
 ---
 
@@ -319,9 +334,30 @@ No billable infrastructure deployed during Phase 1.
 - Full Terraform + CloudFormation orchestration cycle validated
 - Stand-up / tear-down workflow confirmed cost-safe
 
+### ✅ Phase 4: Application Deployment & Security
+- ALB introduced and validated
+- ECS service behind ALB (no direct access)
+- Target group + health checks configured (/health)
+- Deployment stability features:
+  - circuit breaker (rollback enabled)
+  - health check grace period
+  - rolling deployment tuning
+- IAM role separation:
+  - execution role vs task role
+- Security group refinement:
+  - ALB public access only
+  - ECS restricted to ALB only
+- Full deploy → test → destroy workflow validated
+
+---
+
 The project is now ready for:
 
-### ⏭️ Phase 4: Application Deployment & Security
+### 🔜 Next Steps
+- Bring EC2 deployment to production parity (ALB + security)
+- Implement Elastic Beanstalk architecture
+
+### ⏭️ Phase 5: Identity, Access Management & Monitoring
 
 ---
 
