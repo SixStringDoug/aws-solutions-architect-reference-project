@@ -117,6 +117,10 @@ Resources:
       HealthCheckEnabled: true
       HealthCheckPath: /health
       HealthCheckProtocol: HTTP
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
       Matcher:
         HttpCode: "200"
       Tags:
@@ -185,6 +189,9 @@ Resources:
         DbPasswordParameter: /tasktracker-dev/db/password
         TargetGroupArn: !Ref AlbTargetGroup
         ContainerPort: "8080"
+        HealthCheckGracePeriodSeconds: "60"
+        MaximumPercent: "200"
+        MinimumHealthyPercent: "100"
 
 Outputs:
   ClusterName:

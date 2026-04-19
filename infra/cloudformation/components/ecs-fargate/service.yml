@@ -58,6 +58,18 @@ Parameters:
   TargetGroupArn:
     Type: String
 
+  HealthCheckGracePeriodSeconds:
+    Type: Number
+    Default: 60
+
+  MaximumPercent:
+    Type: Number
+    Default: 200
+
+  MinimumHealthyPercent:
+    Type: Number
+    Default: 100
+
 Resources:
 
   EcsTaskExecutionRole:
@@ -172,6 +184,13 @@ Resources:
       Cluster: !Ref ClusterName
       LaunchType: FARGATE
       DesiredCount: !Ref DesiredCount
+      HealthCheckGracePeriodSeconds: !Ref HealthCheckGracePeriodSeconds
+      DeploymentConfiguration:
+        MaximumPercent: !Ref MaximumPercent
+        MinimumHealthyPercent: !Ref MinimumHealthyPercent
+        DeploymentCircuitBreaker:
+          Enable: true
+          Rollback: true
       TaskDefinition: !Ref EcsTaskDefinition
       LoadBalancers:
         - TargetGroupArn: !Ref TargetGroupArn
