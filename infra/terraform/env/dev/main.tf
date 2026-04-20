@@ -87,6 +87,9 @@ module "ec2_networking" {
   # Default OFF (no inbound). If you ever need it briefly:
   allow_ssh = false
   ssh_cidr  = "0.0.0.0/32"
+
+  allow_http = true
+  http_cidr  = "0.0.0.0/0"
 }
 
 resource "aws_cloudformation_stack" "ecs_fargate_skeleton" {

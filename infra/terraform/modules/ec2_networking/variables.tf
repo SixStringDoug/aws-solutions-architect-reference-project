@@ -35,3 +35,15 @@ variable "ssh_cidr" {
   type        = string
   default     = "0.0.0.0/32"
 }
+
+variable "allow_http" {
+  description = "Allow inbound HTTP app traffic on port 8080"
+  type        = bool
+  default     = false
+}
+
+variable "http_cidr" {
+  description = "CIDR allowed to reach the app on port 8080"
+  type        = string
+  default     = "0.0.0.0/0"
+}
