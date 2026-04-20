@@ -20,6 +20,9 @@ module "rds" {
   name_prefix = var.name_prefix
   environment = var.environment
 
+  vpc_id     = module.networking[0].vpc_id
+  subnet_ids = module.networking[0].public_subnet_ids
+
   db_username = var.db_username
   db_password = var.db_password
 

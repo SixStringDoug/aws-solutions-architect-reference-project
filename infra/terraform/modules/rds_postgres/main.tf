@@ -1,17 +1,6 @@
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
 resource "aws_db_subnet_group" "this" {
   name       = "${var.name_prefix}-db-subnets"
-  subnet_ids = data.aws_subnets.default.ids
+  subnet_ids = var.subnet_ids
 
   tags = {
     Environment = var.environment
@@ -24,16 +13,10 @@ resource "aws_db_subnet_group" "this" {
 resource "aws_security_group" "db" {
   name        = "${var.name_prefix}-db-sg"
   description = "Postgres access for ${var.name_prefix} (dev)"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id      = var.vpc_id
 
-  # Only allow if you explicitly set allowed_cidr (default denies all)
-#   ingress {
-#     description = "Postgres"
-#     from_port   = 5432
-#     to_port     = 5432
-#     protocol    = "tcp"
-#     cidr_blocks = [var.allowed_cidr]
-#   }
+  # Temporary dev access rule.
+  # We will tighten this later when EC2 app connectivity is in place.
   ingress {
     description = "Postgres from anywhere (temporary dev)"
     from_port   = 5432
@@ -41,6 +24,15 @@ resource "aws_security_group" "db" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  # Safer version to use later instead of the temporary rule above:
+  # ingress {
+  #   description = "Postgres"
+  #   from_port   = 5432
+  #   to_port     = 5432
+  #   protocol    = "tcp"
+  #   cidr_blocks = [var.allowed_cidr]
+  # }
 
   egress {
     from_port   = 0

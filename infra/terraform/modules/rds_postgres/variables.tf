@@ -1,6 +1,16 @@
 variable "name_prefix" { type = string }
 variable "environment" { type = string }
 
+variable "vpc_id" {
+  description = "VPC ID where the RDS instance and DB security group will be created"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "Subnet IDs for the DB subnet group"
+  type        = list(string)
+}
+
 variable "db_name" {
   type    = string
   default = "tasktracker"
