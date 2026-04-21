@@ -47,3 +47,9 @@ variable "http_cidr" {
   type        = string
   default     = "0.0.0.0/0"
 }
+
+variable "user_data" {
+  description = "User data script for EC2 bootstrap"
+  type        = string
+  default     = null
+}

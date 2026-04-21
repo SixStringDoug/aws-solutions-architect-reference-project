@@ -3,6 +3,15 @@ module "attachments_bucket" {
   bucket_name = "${var.name_prefix}-attachments"
 }
 
+resource "aws_s3_object" "backend_jar" {
+  bucket = module.attachments_bucket.bucket_name
+  key    = "tasktracker.jar"
+  source = "${path.module}/../../../../artifacts/tasktracker.jar"
+  etag   = filemd5("${path.module}/../../../../artifacts/tasktracker.jar")
+
+  content_type = "application/java-archive"
+}
+
 module "app_config" {
   source      = "../../modules/app_config"
   name_prefix = var.name_prefix
@@ -73,6 +82,7 @@ module "networking" {
 
 module "ec2_networking" {
   source = "../../modules/ec2_networking"
+  depends_on = [aws_s3_object.backend_jar]
 
   name_prefix = var.name_prefix
   environment = var.environment
@@ -90,6 +100,26 @@ module "ec2_networking" {
 
   allow_http = true
   http_cidr  = "0.0.0.0/0"
+
+  user_data = <<-EOF
+#!/bin/bash
+# --------------------------------------------
+# EC2 Bootstrap Script
+# Installs Java, downloads app JAR from S3,
+# and starts the Spring Boot application
+# --------------------------------------------
+set -e
+
+dnf update -y
+dnf install -y java-17-amazon-corretto awscli
+
+mkdir -p /opt/tasktracker
+cd /opt/tasktracker
+
+aws s3 cp s3://tasktracker-dev-attachments/tasktracker.jar tasktracker.jar
+
+nohup java -jar tasktracker.jar > app.log 2>&1 &
+EOF
 }
 
 resource "aws_cloudformation_stack" "ecs_fargate_skeleton" {

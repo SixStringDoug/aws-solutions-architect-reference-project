@@ -64,6 +64,7 @@ resource "aws_instance" "this" {
   subnet_id                   = var.subnet_ids[count.index % length(var.subnet_ids)]
   vpc_security_group_ids      = [aws_security_group.ec2[0].id]
   associate_public_ip_address = true
+  user_data                   = var.user_data
 
   tags = {
     Name        = "${var.name_prefix}-ec2-${count.index + 1}"
