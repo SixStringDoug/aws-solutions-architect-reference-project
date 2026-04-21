@@ -213,12 +213,13 @@ http://localhost:5173
 - NAT Gateway demonstration block (disabled by default)
 
 ### Networking Foundation
-- VPC provisioned via CloudFormation nested stack
+- Custom VPC provisioned for application workloads
 - Public subnets across multiple AZs
 - Internet Gateway + public routing
-- Baseline security group for container workloads
+- Baseline security groups for workload access
+- RDS aligned to the custom VPC for EC2-based connectivity
 
-### Compute Platform – ECS Fargate (Production-Ready)
+### Compute Platform – ECS Fargate
 - ECS Cluster provisioned
 - CloudWatch ECS log group integrated
 - Fargate service skeleton deployed
@@ -228,6 +229,17 @@ http://localhost:5173
 - private task access model enforced (ALB-only ingress)
 - health check routing
 - stable deployment behavior
+
+### Compute Platform – EC2
+- EC2 instance provisioning validated in custom VPC
+- Public-IP access model validated for direct application testing
+- Port 8080 access enabled for direct application testing
+- EC2 bootstrap via user_data implemented
+- Spring Boot JAR uploaded automatically to S3 during Terraform apply (no manual deployment steps required)
+- EC2 IAM role and instance profile added for S3 + SSM access
+- Application configuration injected dynamically from SSM Parameter Store
+- EC2 → RDS connectivity validated end-to-end
+- Full deploy → test → destroy lifecycle validated
 
 ### Application Layer
 
@@ -273,6 +285,7 @@ All infrastructure is:
 - Dedicated IAM admin user with MFA
 - IAM billing access enabled (no root dependency for cost management)
 - IAM roles preferred over static credentials
+- EC2 instance profile used for application artifact and configuration access
 - Least-privilege IAM policies applied progressively
 - No credentials committed to source control
 - Only architecture tfvars files are committed; all other tfvars (e.g., secrets) are excluded from version control
@@ -321,18 +334,33 @@ No billable infrastructure deployed during Phase 1.
 - Bootstrap + environment teardown validated
 
 ### ✅ Phase 3 – Networking & Compute Basics
-- VPC baseline deployed via CloudFormation nested stack
-- Public subnets provisioned across multiple AZs
-- Internet Gateway routing configured
-- ECS cluster provisioned and verified
-- Fargate service skeleton deployed
-- CloudWatch log group wired with retention policy
-- Docker multi-stage build pipeline validated (linux/amd64)
-- ECR repository lifecycle verified
-- End-to-end image push → ECS task startup confirmed
-- CLI-based deployment verification workflow established
-- Full Terraform + CloudFormation orchestration cycle validated
-- Stand-up / tear-down workflow confirmed cost-safe
+
+- Shared networking foundation
+  - Custom VPC deployed
+  - Public subnets provisioned across multiple AZs
+  - Internet Gateway routing configured
+  - Cost-safe stand-up / tear-down workflow validated
+
+- Fargate path
+  - ECS cluster provisioned and verified
+  - Fargate service skeleton deployed
+  - CloudWatch log group wired with retention policy
+  - Docker multi-stage build pipeline validated (linux/amd64)
+  - ECR repository lifecycle verified
+  - End-to-end image push → ECS task startup confirmed
+  - Full Terraform + CloudFormation orchestration cycle validated
+
+- EC2 path
+  - RDS realigned into the custom VPC for EC2 compatibility
+  - EC2 instance provisioning validated in the custom VPC
+  - Port 8080 access enabled for direct application testing
+  - EC2 bootstrap via user_data implemented
+  - JAR delivery automated through Terraform-managed S3 upload
+  - EC2 IAM role + instance profile added for S3 and SSM access
+  - Application configuration loaded dynamically from SSM Parameter Store
+  - `/health` endpoint validated on EC2
+  - EC2 → RDS connectivity validated through end-to-end CRUD API testing
+  - Full deploy → validate → destroy lifecycle confirmed
 
 ### ✅ Phase 4: Application Deployment & Security
 - ALB introduced and validated
@@ -354,7 +382,7 @@ No billable infrastructure deployed during Phase 1.
 The project is now ready for:
 
 ### 🔜 Next Steps
-- Bring EC2 deployment to production parity (ALB + security)
+- Bring EC2 deployment to Phase 4 parity (ALB + security hardening)
 - Implement Elastic Beanstalk architecture
 
 ### ⏭️ Phase 5: Identity, Access Management & Monitoring
