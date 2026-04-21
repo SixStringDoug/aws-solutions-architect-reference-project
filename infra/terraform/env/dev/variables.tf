@@ -37,6 +37,11 @@ variable "db_password" {
   sensitive = true
 }
 
+variable "db_name" {
+  description = "Database name"
+  type        = string
+}
+
 # -----------------------------
 # Compute Toggles
 # -----------------------------

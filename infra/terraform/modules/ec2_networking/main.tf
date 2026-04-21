@@ -8,6 +8,10 @@ data "aws_ami" "al2023" {
   }
 }
 
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
 resource "aws_security_group" "ec2" {
   count  = var.enabled ? 1 : 0
   name   = "${var.name_prefix}-ec2-sg"
@@ -56,6 +60,81 @@ resource "aws_security_group_rule" "http_8080" {
   description       = "Temporary app access on port 8080"
 }
 
+resource "aws_iam_role" "ec2_app" {
+  count = var.enabled ? 1 : 0
+
+  name = "${var.name_prefix}-ec2-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+
+  tags = {
+    Name        = "${var.name_prefix}-ec2-role"
+    Project     = "tasktracker"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Owner       = "Doug"
+  }
+}
+
+resource "aws_iam_role_policy" "ec2_app" {
+  count = var.enabled ? 1 : 0
+
+  name = "${var.name_prefix}-ec2-policy"
+  role = aws_iam_role.ec2_app[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "ReadAppJarFromS3"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject"
+        ]
+        Resource = "arn:aws:s3:::${var.artifact_bucket_name}/tasktracker.jar"
+      },
+      {
+        Sid    = "ReadDbParametersFromSsm"
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters"
+        ]
+        Resource = [
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter${var.ssm_parameter_paths.db_host}",
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter${var.ssm_parameter_paths.db_port}",
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter${var.ssm_parameter_paths.db_username}",
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter${var.ssm_parameter_paths.db_password}"
+        ]
+      },
+      {
+        Sid    = "DecryptSecureStringParameters"
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_instance_profile" "ec2_app" {
+  count = var.enabled ? 1 : 0
+
+  name = "${var.name_prefix}-ec2-profile"
+  role = aws_iam_role.ec2_app[0].name
+}
+
 resource "aws_instance" "this" {
   count = var.enabled ? var.desired_count : 0
 
@@ -64,6 +143,7 @@ resource "aws_instance" "this" {
   subnet_id                   = var.subnet_ids[count.index % length(var.subnet_ids)]
   vpc_security_group_ids      = [aws_security_group.ec2[0].id]
   associate_public_ip_address = true
+  iam_instance_profile        = aws_iam_instance_profile.ec2_app[0].name
   user_data                   = var.user_data
 
   tags = {

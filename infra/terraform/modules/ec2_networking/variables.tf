@@ -53,3 +53,23 @@ variable "user_data" {
   type        = string
   default     = null
 }
+
+variable "artifact_bucket_name" {
+  description = "S3 bucket containing the application JAR"
+  type        = string
+}
+
+variable "db_name" {
+  description = "Application database name"
+  type        = string
+}
+
+variable "ssm_parameter_paths" {
+  description = "SSM parameter paths for DB configuration"
+  type = object({
+    db_host     = string
+    db_port     = string
+    db_username = string
+    db_password = string
+  })
+}

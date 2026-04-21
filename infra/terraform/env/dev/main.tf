@@ -94,6 +94,10 @@ module "ec2_networking" {
   instance_type = var.ec2_instance_type
   desired_count = var.ec2_desired_count
 
+  artifact_bucket_name = module.attachments_bucket.bucket_name
+  db_name              = "tasktrackerdevpostgres"
+  ssm_parameter_paths  = module.app_config.ssm_parameter_paths
+
   # Default OFF (no inbound). If you ever need it briefly:
   allow_ssh = false
   ssh_cidr  = "0.0.0.0/32"
@@ -106,9 +110,10 @@ module "ec2_networking" {
 # --------------------------------------------
 # EC2 Bootstrap Script
 # Installs Java, downloads app JAR from S3,
-# and starts the Spring Boot application
+# reads DB config from SSM, and starts app
 # --------------------------------------------
 set -e
+exec > /var/log/user-data.log 2>&1
 
 dnf update -y
 dnf install -y java-17-amazon-corretto awscli
@@ -116,9 +121,21 @@ dnf install -y java-17-amazon-corretto awscli
 mkdir -p /opt/tasktracker
 cd /opt/tasktracker
 
-aws s3 cp s3://tasktracker-dev-attachments/tasktracker.jar tasktracker.jar
+aws s3 cp s3://${module.attachments_bucket.bucket_name}/tasktracker.jar tasktracker.jar
 
-nohup java -jar tasktracker.jar > app.log 2>&1 &
+DB_HOST=$(aws ssm get-parameter --name "${module.app_config.ssm_parameter_paths.db_host}" --query 'Parameter.Value' --output text --region ${var.aws_region})
+DB_PORT=$(aws ssm get-parameter --name "${module.app_config.ssm_parameter_paths.db_port}" --query 'Parameter.Value' --output text --region ${var.aws_region})
+DB_USERNAME=$(aws ssm get-parameter --name "${module.app_config.ssm_parameter_paths.db_username}" --with-decryption --query 'Parameter.Value' --output text --region ${var.aws_region})
+DB_PASSWORD=$(aws ssm get-parameter --name "${module.app_config.ssm_parameter_paths.db_password}" --with-decryption --query 'Parameter.Value' --output text --region ${var.aws_region})
+
+DB_URL="jdbc:postgresql://$${DB_HOST}:$${DB_PORT}/tasktrackerdevpostgres"
+
+nohup env \
+  SPRING_PROFILES_ACTIVE=ec2 \
+  DB_URL="$DB_URL" \
+  DB_USERNAME="$DB_USERNAME" \
+  DB_PASSWORD="$DB_PASSWORD" \
+  java -jar tasktracker.jar > app.log 2>&1 &
 EOF
 }
 
