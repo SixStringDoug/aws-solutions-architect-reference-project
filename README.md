@@ -156,6 +156,10 @@ terraform destroy
 ./mvnw clean package -DskipTests
 java -jar artifacts/tasktracker.jar
 ```
+Note: The application JAR is not stored in Git.
+Build locally before deployment:
+./mvnw clean package -DskipTests
+
 ### Health Check:
 ```bash
 curl http://localhost:8080/health
@@ -235,8 +239,9 @@ http://localhost:5173
 - Public-IP access model validated for direct application testing
 - Port 8080 access enabled for direct application testing
 - EC2 bootstrap via user_data implemented
+- EC2 bootstrap logging enabled via user_data for troubleshooting and validation
 - Spring Boot JAR uploaded automatically to S3 during Terraform apply (no manual deployment steps required)
-- EC2 IAM role and instance profile added for S3 + SSM access
+- EC2 IAM role and instance profile added for secure S3 artifact retrieval and SSM Parameter Store access
 - Application configuration injected dynamically from SSM Parameter Store
 - EC2 → RDS connectivity validated end-to-end
 - Full deploy → test → destroy lifecycle validated
@@ -360,7 +365,7 @@ No billable infrastructure deployed during Phase 1.
   - Application configuration loaded dynamically from SSM Parameter Store
   - `/health` endpoint validated on EC2
   - EC2 → RDS connectivity validated through end-to-end CRUD API testing
-  - Full deploy → validate → destroy lifecycle confirmed
+  - Full deploy → validate → destroy lifecycle confirmed with zero residual resources
 
 ### ✅ Phase 4: Application Deployment & Security
 - ALB introduced and validated
