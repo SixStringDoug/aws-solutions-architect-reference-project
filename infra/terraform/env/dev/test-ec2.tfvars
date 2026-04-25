@@ -2,12 +2,13 @@
 # EC2 Compute Test
 # -----------------------------
 
-enable_networking       = true
-enable_ec2              = true
-enable_nat_gateway      = false
-nat_cost_acknowledged   = false
-enable_cloudformation   = false
-enable_ecr              = false
+enable_networking     = true
+enable_ec2            = true
+enable_ec2_alb        = true
+enable_nat_gateway    = false
+nat_cost_acknowledged = false
+enable_cloudformation = false
+enable_ecr            = false
 
 ec2_instance_type = "t3.micro"
 ec2_desired_count = 1

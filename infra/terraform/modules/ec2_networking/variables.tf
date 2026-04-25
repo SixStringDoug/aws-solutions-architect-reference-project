@@ -73,3 +73,9 @@ variable "ssm_parameter_paths" {
     db_password = string
   })
 }
+
+  variable "enable_alb" {
+    description = "Create an Application Load Balancer for EC2 application access"
+    type        = bool
+    default     = false
+  }

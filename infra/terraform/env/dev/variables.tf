@@ -82,6 +82,12 @@ variable "ec2_desired_count" {
   default     = 1
 }
 
+variable "enable_ec2_alb" {
+  description = "Enable Application Load Balancer for EC2 path"
+  type        = bool
+  default     = false
+}
+
 variable "enable_cloudformation" {
   description = "Enable deployment of CloudFormation ECS/Fargate skeleton stack"
   type        = bool

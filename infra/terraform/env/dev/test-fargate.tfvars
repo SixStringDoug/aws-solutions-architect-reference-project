@@ -2,12 +2,12 @@
 # Fargate Compute Test
 # -----------------------------
 
-enable_networking       = true
-enable_ec2              = false
-enable_nat_gateway      = false
-nat_cost_acknowledged   = false
-enable_cloudformation   = false
-enable_ecr              = true
+enable_networking     = true
+enable_ec2            = false
+enable_nat_gateway    = false
+nat_cost_acknowledged = false
+enable_cloudformation = false
+enable_ecr            = true
 
 ec2_instance_type = "t3.micro"
 ec2_desired_count = 1
