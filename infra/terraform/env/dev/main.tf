@@ -104,7 +104,7 @@ module "ec2_networking" {
   allow_ssh = false
   ssh_cidr  = "0.0.0.0/32"
 
-  allow_http = true
+  allow_http = false
   http_cidr  = "0.0.0.0/0"
 
   user_data = <<-EOF

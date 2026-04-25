@@ -54,7 +54,7 @@ resource "aws_s3_bucket_policy" "deny_insecure_transport" {
       Effect    = "Deny"
       Principal = "*"
       Action    = "s3:*"
-      Resource  = [
+      Resource = [
         aws_s3_bucket.this.arn,
         "${aws_s3_bucket.this.arn}/*"
       ]

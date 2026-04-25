@@ -74,8 +74,8 @@ variable "ssm_parameter_paths" {
   })
 }
 
-  variable "enable_alb" {
-    description = "Create an Application Load Balancer for EC2 application access"
-    type        = bool
-    default     = false
-  }
+variable "enable_alb" {
+  description = "Create an Application Load Balancer for EC2 application access"
+  type        = bool
+  default     = false
+}
