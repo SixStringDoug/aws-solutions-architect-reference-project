@@ -15,25 +15,6 @@ resource "aws_security_group" "db" {
   description = "Postgres access for ${var.name_prefix} (dev)"
   vpc_id      = var.vpc_id
 
-  # Temporary dev access rule.
-  # We will tighten this later when EC2 app connectivity is in place.
-#   ingress {
-#     description = "Postgres from anywhere (temporary dev)"
-#     from_port   = 5432
-#     to_port     = 5432
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-
-  # Safer version to use later instead of the temporary rule above:
-  # ingress {
-  #   description = "Postgres"
-  #   from_port   = 5432
-  #   to_port     = 5432
-  #   protocol    = "tcp"
-  #   cidr_blocks = [var.allowed_cidr]
-  # }
-
   egress {
     from_port   = 0
     to_port     = 0

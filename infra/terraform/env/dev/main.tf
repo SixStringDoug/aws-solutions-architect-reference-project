@@ -41,8 +41,8 @@ module "rds" {
   multi_az                    = false
   use_managed_master_password = false
 
-  # Safe default: deny connections unless you set a real CIDR
-  allowed_cidr = "0.0.0.0/0"
+  # No public DB access; RDS ingress is controlled by security group source rules.
+  allowed_cidr = "0.0.0.0/32"
 }
 
 module "fargate_guardrails" {
@@ -105,7 +105,7 @@ module "ec2_networking" {
   ssh_cidr  = "0.0.0.0/32"
 
   allow_http = false
-  http_cidr  = "0.0.0.0/0"
+  http_cidr  = "0.0.0.0/32"
 
   user_data = <<-EOF
 #!/bin/bash
