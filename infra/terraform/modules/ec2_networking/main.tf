@@ -225,14 +225,20 @@ resource "aws_iam_role_policy" "ec2_app" {
           "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter${var.ssm_parameter_paths.db_password}"
         ]
       },
-      {
-        Sid    = "DecryptSecureStringParameters"
-        Effect = "Allow"
-        Action = [
-          "kms:Decrypt"
-        ]
-        Resource = "*"
-      }
+{
+  Sid    = "DecryptSecureStringParameters"
+  Effect = "Allow"
+  Action = [
+    "kms:Decrypt"
+  ]
+  Resource = "*"
+  Condition = {
+    StringEquals = {
+      "kms:ViaService"    = "ssm.${data.aws_region.current.name}.amazonaws.com"
+      "kms:CallerAccount" = data.aws_caller_identity.current.account_id
+    }
+  }
+}
     ]
   })
 }
