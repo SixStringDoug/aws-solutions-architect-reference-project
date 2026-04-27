@@ -141,6 +141,20 @@ nohup env \
 EOF
 }
 
+resource "aws_security_group_rule" "rds_from_ec2" {
+  count = var.enable_ec2 ? 1 : 0
+
+  type                     = "ingress"
+  security_group_id        = module.rds.security_group_id
+  source_security_group_id = module.ec2_networking.security_group_id
+
+  from_port = 5432
+  to_port   = 5432
+  protocol  = "tcp"
+
+  description = "Allow PostgreSQL traffic from EC2 application security group"
+}
+
 resource "aws_cloudformation_stack" "ecs_fargate_skeleton" {
   count = var.enable_cloudformation ? 1 : 0
 

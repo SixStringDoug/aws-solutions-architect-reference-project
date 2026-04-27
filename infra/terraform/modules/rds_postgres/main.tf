@@ -17,13 +17,13 @@ resource "aws_security_group" "db" {
 
   # Temporary dev access rule.
   # We will tighten this later when EC2 app connectivity is in place.
-  ingress {
-    description = "Postgres from anywhere (temporary dev)"
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   ingress {
+#     description = "Postgres from anywhere (temporary dev)"
+#     from_port   = 5432
+#     to_port     = 5432
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
   # Safer version to use later instead of the temporary rule above:
   # ingress {

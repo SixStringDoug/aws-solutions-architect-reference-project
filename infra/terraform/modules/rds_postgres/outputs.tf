@@ -21,3 +21,8 @@ output "identifier" {
     : aws_db_instance.this_standard[0].identifier
   )
 }
+
+output "security_group_id" {
+  value       = aws_security_group.db.id
+  description = "Security group ID for the RDS PostgreSQL instance"
+}
