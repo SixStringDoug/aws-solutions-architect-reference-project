@@ -236,22 +236,26 @@ http://localhost:5173
 
 ### Compute Platform – EC2
 - EC2 instance provisioning validated in custom VPC
-- Public-IP access model validated for direct application testing
-- Port 8080 access enabled for direct application testing
+- Spring Boot JAR uploaded automatically to S3 during Terraform apply
 - EC2 bootstrap via user_data implemented
 - EC2 bootstrap logging enabled via user_data for troubleshooting and validation
-- Spring Boot JAR uploaded automatically to S3 during Terraform apply (no manual deployment steps required)
-- EC2 IAM role and instance profile added for secure S3 artifact retrieval and SSM Parameter Store access
+- EC2 IAM role and instance profile used for secure S3 artifact retrieval and SSM Parameter Store access
 - Application configuration injected dynamically from SSM Parameter Store
-- EC2 → RDS connectivity validated end-to-end
-- Full deploy → test → destroy lifecycle validated
+- ALB introduced as the public application entry point
+- EC2 application access restricted to ALB-only ingress
+- Target group health checks configured against `/health`
+- RDS access restricted to the EC2 application security group
+- EC2 → RDS CRUD validation completed through ALB
+- Full deploy → validate → destroy lifecycle validated
 
 ### Application Layer
 
-- ALB → ECS → RDS architecture
+- ALB → ECS → RDS architecture for Fargate
+- ALB → EC2 → RDS architecture for EC2
 - HTTP routing via ALB
 - health check endpoint
-- zero direct task exposure
+- zero direct task exposure (Fargate)
+- zero direct compute exposure (EC2)
 
 ### Container Delivery Pipeline
 - Docker multi-stage Java 17 build
@@ -300,6 +304,9 @@ All infrastructure is:
     - RDS-managed secret (optional)
 - ALB-only ingress to application layer
 - ECS tasks not publicly accessible
+- EC2 application instance not directly publicly accessible
+- EC2 application ingress restricted to ALB security group only
+- RDS ingress restricted to application security groups only
 - Security group isolation enforced
 
 ---
@@ -368,26 +375,38 @@ No billable infrastructure deployed during Phase 1.
   - Full deploy → validate → destroy lifecycle confirmed with zero residual resources
 
 ### ✅ Phase 4: Application Deployment & Security
-- ALB introduced and validated
-- ECS service behind ALB (no direct access)
-- Target group + health checks configured (/health)
-- Deployment stability features:
-  - circuit breaker (rollback enabled)
-  - health check grace period
-  - rolling deployment tuning
-- IAM role separation:
-  - execution role vs task role
-- Security group refinement:
-  - ALB public access only
-  - ECS restricted to ALB only
-- Full deploy → test → destroy workflow validated
+- Fargate path
+  - ALB introduced and validated
+  - ECS service behind ALB (no direct access)
+  - Target group + health checks configured (/health)
+  - Deployment stability features:
+    - circuit breaker (rollback enabled)
+    - health check grace period
+    - rolling deployment tuning
+  - IAM role separation:
+    - execution role vs task role
+  - Security group refinement:
+    - ALB public access only
+    - ECS restricted to ALB only
+  - Full deploy → test → destroy workflow validated
+
+- EC2 path
+  - ALB introduced and validated
+  - EC2 application routing moved behind ALB
+  - Target group + health checks configured (/health)
+  - EC2 public port 8080 access removed
+  - EC2 application ingress restricted to ALB security group only
+  - RDS public database access removed
+  - RDS ingress restricted to EC2 security group only
+  - EC2 IAM decrypt permissions refined for SSM SecureString access
+  - ALB → EC2 → RDS CRUD flow validated end-to-end
+  - Full deploy → validate → destroy workflow validated
 
 ---
 
 The project is now ready for:
 
 ### 🔜 Next Steps
-- Bring EC2 deployment to Phase 4 parity (ALB + security hardening)
 - Implement Elastic Beanstalk architecture
 
 ### ⏭️ Phase 5: Identity, Access Management & Monitoring
