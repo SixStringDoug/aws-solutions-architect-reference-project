@@ -30,64 +30,19 @@ Parameters:
     Type: String
     Description: Full ECR image URI including tag
 
+  VpcId:
+    Type: String
+
+  PublicSubnetIds:
+    Type: String
+
+  AlbSecurityGroupId:
+    Type: String
+
+  TasksSecurityGroupId:
+    Type: String
+
 Resources:
-
-  Networking:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub "https://${ArtifactBucket}.s3.${AWS::Region}.amazonaws.com/${ArtifactPrefix}/components/networking-vpc.yml"
-      Parameters:
-        NamePrefix: !Ref NamePrefix
-        Project: !Ref Project
-        Environment: !Ref Environment
-
-  FargateTasksSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Sub "Fargate tasks SG for ${NamePrefix}"
-      VpcId: !GetAtt Networking.Outputs.VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          SourceSecurityGroupId: !Ref AlbSecurityGroup
-          Description: Allow ALB to reach ECS tasks
-      SecurityGroupEgress:
-        - IpProtocol: "-1"
-          CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: !Sub "${NamePrefix}-sg-fargate-tasks"
-        - Key: Project
-          Value: !Ref Project
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: ManagedBy
-          Value: cloudformation
-
-  AlbSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Sub "ALB SG for ${NamePrefix}"
-      VpcId: !GetAtt Networking.Outputs.VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-          Description: Public HTTP access to ALB
-      SecurityGroupEgress:
-        - IpProtocol: "-1"
-          CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: !Sub "${NamePrefix}-sg-alb"
-        - Key: Project
-          Value: !Ref Project
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: ManagedBy
-          Value: cloudformation
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -96,8 +51,8 @@ Resources:
       Scheme: internet-facing
       Type: application
       SecurityGroups:
-        - !Ref AlbSecurityGroup
-      Subnets: !Split [",", !GetAtt Networking.Outputs.PublicSubnetIds]
+        - !Ref AlbSecurityGroupId
+      Subnets: !Split [",", !Ref PublicSubnetIds]
       Tags:
         - Key: Project
           Value: !Ref Project
@@ -113,14 +68,14 @@ Resources:
       Port: 8080
       Protocol: HTTP
       TargetType: ip
-      VpcId: !GetAtt Networking.Outputs.VpcId
+      VpcId: !Ref VpcId
       HealthCheckEnabled: true
       HealthCheckPath: /health
       HealthCheckProtocol: HTTP
       HealthCheckIntervalSeconds: 30
       HealthCheckTimeoutSeconds: 5
-      HealthyThresholdCount: 2
-      UnhealthyThresholdCount: 3
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 5
       Matcher:
         HttpCode: "200"
       Tags:
@@ -177,13 +132,13 @@ Resources:
         Environment: !Ref Environment
         NamePrefix: !Ref NamePrefix
         ClusterName: !Ref EcsCluster
-        VpcId: !GetAtt Networking.Outputs.VpcId
-        PublicSubnetIds: !GetAtt Networking.Outputs.PublicSubnetIds
-        TasksSecurityGroupId: !Ref FargateTasksSecurityGroup
+        VpcId: !Ref VpcId
+        PublicSubnetIds: !Ref PublicSubnetIds
+        TasksSecurityGroupId: !Ref TasksSecurityGroupId
         ContainerImage: !Ref ContainerImage
         AttachmentsBucketName: !Sub "${NamePrefix}-attachments"
-        DbHost: tasktracker-dev-postgres.chqao8u2qi6m.us-east-2.rds.amazonaws.com
-        DbPort: "5432"
+        DbHost: !Sub "{{resolve:ssm:/tasktracker-dev/db/host}}"
+        DbPort: !Sub "{{resolve:ssm:/tasktracker-dev/db/port}}"
         DbName: tasktrackerdevpostgres
         DbUsernameParameter: /tasktracker-dev/db/username
         DbPasswordParameter: /tasktracker-dev/db/password
@@ -198,13 +153,13 @@ Outputs:
     Value: !Ref EcsCluster
 
   VpcId:
-    Value: !GetAtt Networking.Outputs.VpcId
+    Value: !Ref VpcId
 
   PublicSubnetIds:
-    Value: !GetAtt Networking.Outputs.PublicSubnetIds
+    Value: !Ref PublicSubnetIds
 
   TasksSecurityGroupId:
-    Value: !Ref FargateTasksSecurityGroup
+    Value: !Ref TasksSecurityGroupId
 
   ServiceName:
     Description: ECS service name

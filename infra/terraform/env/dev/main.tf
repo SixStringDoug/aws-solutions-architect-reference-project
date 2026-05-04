@@ -155,6 +155,65 @@ resource "aws_security_group_rule" "rds_from_ec2" {
   description = "Allow PostgreSQL traffic from EC2 application security group"
 }
 
+resource "aws_security_group" "fargate_alb" {
+  count       = var.enable_cloudformation ? 1 : 0
+  name        = "${var.name_prefix}-sg-fargate-alb"
+  description = "ALB SG for Fargate"
+  vpc_id      = module.networking[0].vpc_id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Public HTTP access to ALB"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "fargate_tasks" {
+  count       = var.enable_cloudformation ? 1 : 0
+  name        = "${var.name_prefix}-sg-fargate-tasks"
+  description = "Fargate task SG"
+  vpc_id      = module.networking[0].vpc_id
+
+  ingress {
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.fargate_alb[0].id]
+    description     = "Allow ALB to reach ECS tasks"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group_rule" "rds_from_fargate" {
+  count = var.enable_cloudformation ? 1 : 0
+
+  type      = "ingress"
+  from_port = 5432
+  to_port   = 5432
+  protocol  = "tcp"
+
+  # This comes from CloudFormation stack outputs
+  security_group_id        = module.rds.security_group_id
+  source_security_group_id = aws_security_group.fargate_tasks[0].id
+
+  description = "Allow PostgreSQL traffic from Fargate tasks"
+}
+
 resource "aws_cloudformation_stack" "ecs_fargate_skeleton" {
   count = var.enable_cloudformation ? 1 : 0
 
@@ -170,6 +229,11 @@ resource "aws_cloudformation_stack" "ecs_fargate_skeleton" {
     ArtifactBucket = "${var.name_prefix}-cfn-artifacts-${var.account_id}"
     ArtifactPrefix = var.name_prefix
     ContainerImage = var.container_image
+
+    VpcId                = module.networking[0].vpc_id
+    PublicSubnetIds      = join(",", module.networking[0].public_subnet_ids)
+    AlbSecurityGroupId   = aws_security_group.fargate_alb[0].id
+    TasksSecurityGroupId = aws_security_group.fargate_tasks[0].id
   }
 
   tags = {

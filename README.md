@@ -9,7 +9,7 @@ The goal is to demonstrate **architectural tradeoffs**, not application complexi
 ---
 
 ## 🎯 Project Goals
-- Practice AWS core services (EC2, ALB, RDS, ECS/Fargate, Elastic Beanstalk, S3, IAM, CloudWatch)
+- Practice AWS core services (EC2, ALB, RDS, ECS/Fargate, S3, IAM, CloudWatch)
 - Deploy the **same application artifact** across multiple AWS architectures
 - Use **environment-based configuration** instead of code changes
 - Manage infrastructure with **Infrastructure as Code** (Terraform / CloudFormation)
@@ -69,7 +69,7 @@ aws-saa-project-2/
 
 ## ⚙️ Configuration Model
 - Application behavior is controlled entirely via:
-    - `SPRING_PROFILES_ACTIVE` (`ec2`, `fargate`, `beanstalk`, `local`)
+    - `SPRING_PROFILES_ACTIVE` (`ec2`, `fargate`, `local`)
     - Environment variables (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, etc.)
 - **No code changes** are required to switch architectures.
 - Sensitive values are injected via:
@@ -95,7 +95,6 @@ Each `.tfvars` file represents a complete, standalone infrastructure configurati
 ### Available configurations (deploy only one at a time):
 - `test-ec2.tfvars`     → EC2-based deployment
 - `test-fargate.tfvars` → ECS Fargate-based deployment
-- `test-beanstalk.tfvars` → (planned)
 
 ### 🔧 Deployment Workflow
 
@@ -226,13 +225,17 @@ http://localhost:5173
 ### Compute Platform – ECS Fargate
 - ECS Cluster provisioned
 - CloudWatch ECS log group integrated
-- Fargate service skeleton deployed
-- Public-IP task networking model validated
-- Terraform → CloudFormation orchestration confirmed
-- ALB integration
-- private task access model enforced (ALB-only ingress)
-- health check routing
-- stable deployment behavior
+- Fargate service deployed via CloudFormation (nested stack)
+- Terraform → CloudFormation orchestration model implemented
+- Security group ownership moved to Terraform to eliminate cross-stack dependency issues
+- ALB integration with target group and `/health` checks
+- Health check tuning implemented:
+  - Increased grace period for application startup latency
+  - Adjusted healthy/unhealthy thresholds for stability
+- Private task access model enforced (ALB-only ingress)
+- RDS connectivity via Terraform-managed security group rules
+- Stable deployment behavior validated (no task cycling)
+- Full destroy → deploy → validate lifecycle confirmed from clean state
 
 ### Compute Platform – EC2
 - EC2 instance provisioning validated in custom VPC
@@ -250,18 +253,21 @@ http://localhost:5173
 
 ### Application Layer
 
-- ALB → ECS → RDS architecture for Fargate
-- ALB → EC2 → RDS architecture for EC2
+- ALB → ECS → RDS architecture (Fargate)
+- ALB → EC2 → RDS architecture (EC2)
 - HTTP routing via ALB
-- health check endpoint
-- zero direct task exposure (Fargate)
-- zero direct compute exposure (EC2)
+- `/health` endpoint used for load balancer health checks
+- Zero direct task exposure (Fargate)
+- Zero direct instance exposure (EC2)
+- Shared backend artifact deployed across both compute models
+- Environment-driven configuration ensures identical behavior across architectures
 
 ### Container Delivery Pipeline
 - Docker multi-stage Java 17 build
 - ECR repository lifecycle verified
 - linux/amd64 image compatibility enforced
-- ECS deployment stability validated (circuit breaker + health checks)
+- ECS deployment stability validated (circuit breaker and health checks)
+- Cross-architecture deployment validated using the same backend application codebase across containerized Fargate and JAR-based EC2 workflows
 
 All infrastructure is:
 - Modular
@@ -377,18 +383,17 @@ No billable infrastructure deployed during Phase 1.
 ### ✅ Phase 4: Application Deployment & Security
 - Fargate path
   - ALB introduced and validated
-  - ECS service behind ALB (no direct access)
-  - Target group + health checks configured (/health)
-  - Deployment stability features:
-    - circuit breaker (rollback enabled)
-    - health check grace period
-    - rolling deployment tuning
-  - IAM role separation:
-    - execution role vs task role
-  - Security group refinement:
-    - ALB public access only
-    - ECS restricted to ALB only
-  - Full deploy → test → destroy workflow validated
+  - ECS service deployed via CloudFormation nested stack
+  - Terraform-managed networking and security groups (single source of truth)
+  - Target group + `/health` checks configured
+  - Deployment stability tuning:
+    - increased health check grace period
+    - adjusted ALB health thresholds
+    - ECS circuit breaker (rollback enabled)
+  - Resolved cross-stack dependency issue between Terraform and CloudFormation
+  - RDS connectivity validated through security group alignment
+  - Stable ECS service (no task churn)
+  - Full destroy → deploy → validate lifecycle confirmed from clean state
 
 - EC2 path
   - ALB introduced and validated
@@ -400,14 +405,36 @@ No billable infrastructure deployed during Phase 1.
   - RDS ingress restricted to EC2 security group only
   - EC2 IAM decrypt permissions refined for SSM SecureString access
   - ALB → EC2 → RDS CRUD flow validated end-to-end
-  - Full deploy → validate → destroy workflow validated
+  - Full destroy → deploy → validate lifecycle confirmed from clean state
+
+---
+
+## 🧠 Key Architectural Lessons Learned
+
+- Infrastructure ownership must be clearly defined:
+  - Terraform owns networking and security groups
+  - CloudFormation consumes those resources
+- Cross-stack dependencies (Terraform ↔ CloudFormation) can cause timing failures if not properly designed
+- Application startup time must be aligned with ALB health check configuration
+- ECS task failures are often orchestration issues—not application failures
+- A single application artifact can successfully support multiple compute platforms when configuration is externalized
+
+---
+
+## 🧪 Validation Summary
+
+Both compute paths have been fully validated from a **clean destroyed state**:
+
+- ✅ Fargate: deploy → stabilize → serve traffic → destroy
+- ✅ EC2: deploy → stabilize → serve traffic → destroy
+- ✅ Shared services (RDS, SSM, S3) function correctly across both architectures
+- ✅ No residual dependencies between compute models
+
+This confirms a **production-aligned, architecture-agnostic deployment model**.
 
 ---
 
 The project is now ready for:
-
-### 🔜 Next Steps
-- Implement Elastic Beanstalk architecture
 
 ### ⏭️ Phase 5: Identity, Access Management & Monitoring
 

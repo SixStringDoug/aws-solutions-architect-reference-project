@@ -60,7 +60,7 @@ Parameters:
 
   HealthCheckGracePeriodSeconds:
     Type: Number
-    Default: 60
+    Default: 120
 
   MaximumPercent:
     Type: Number
@@ -158,7 +158,7 @@ Resources:
           Image: !Ref ContainerImage
           Essential: true
           Environment:
-            - Name: APP_ENV
+            - Name: SPRING_PROFILES_ACTIVE
               Value: fargate
             - Name: DB_URL
               Value: !Sub "jdbc:postgresql://${DbHost}:${DbPort}/${DbName}"

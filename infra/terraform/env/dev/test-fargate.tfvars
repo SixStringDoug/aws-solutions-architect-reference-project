@@ -4,6 +4,7 @@
 
 enable_networking     = true
 enable_ec2            = false
+enable_ec2_alb        = false
 enable_nat_gateway    = false
 nat_cost_acknowledged = false
 enable_cloudformation = false

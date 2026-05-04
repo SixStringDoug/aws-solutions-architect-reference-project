@@ -6,7 +6,7 @@ ENV_DIR="${ROOT_DIR}/infra/terraform/env/dev"
 APP_DIR="${ROOT_DIR}/backend/tasktracker"
 AWS_REGION="us-east-2"
 IMAGE_TAG="${1:-dev}"
-LOCAL_IMAGE="tasktracker-backend:${IMAGE_TAG}"
+LOCAL_IMAGE="tasktracker-dev-backend:${IMAGE_TAG}"
 
 cd "${ENV_DIR}"
 
