@@ -1,8 +1,7 @@
-# CloudFormation (Project 2 & 3)
+# CloudFormation (Project 2)
 
 This directory is reserved for AWS CloudFormation templates and scripts used in:
 - Project 2 (Fargate + DynamoDB + EFS)
-- Project 3 (Elastic Beanstalk)
 
 ## Naming Conventions
 Stack names and resource names must follow the project convention:

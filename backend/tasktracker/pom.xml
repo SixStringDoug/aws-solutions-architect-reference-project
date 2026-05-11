@@ -12,7 +12,7 @@
 	<artifactId>tasktracker</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>tasktracker</name>
-	<description>Task Tracker – A simple Spring Boot CRUD application to manage tasks. Built to demonstrate AWS deployment across EC2, Fargate, and Elastic Beanstalk as part of AWS Solutions Architect (SAA-C03) training.</description>
+	<description>Task Tracker – A simple Spring Boot CRUD application to manage tasks. Built to demonstrate AWS deployment across EC2, and Fargate as part of AWS Solutions Architect (SAA-C03) training.</description>
 	<url/>
 	<licenses>
 		<license/>

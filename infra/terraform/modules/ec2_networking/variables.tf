@@ -79,3 +79,9 @@ variable "enable_alb" {
   type        = bool
   default     = false
 }
+
+variable "log_retention_days" {
+  description = "CloudWatch retention period for EC2 logs"
+  type        = number
+  default     = 7
+}

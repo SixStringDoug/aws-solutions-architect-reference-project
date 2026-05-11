@@ -12,6 +12,21 @@ data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
 
+resource "aws_cloudwatch_log_group" "ec2" {
+  count = var.enabled ? 1 : 0
+
+  name              = "/${var.name_prefix}/ec2"
+  retention_in_days = var.log_retention_days
+
+  tags = {
+    Name        = "/${var.name_prefix}/ec2"
+    Project     = "tasktracker"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Owner       = "Doug"
+  }
+}
+
 resource "aws_security_group" "ec2" {
   count  = var.enabled ? 1 : 0
   name   = "${var.name_prefix}-ec2-sg"
@@ -225,20 +240,30 @@ resource "aws_iam_role_policy" "ec2_app" {
           "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter${var.ssm_parameter_paths.db_password}"
         ]
       },
-{
-  Sid    = "DecryptSecureStringParameters"
-  Effect = "Allow"
-  Action = [
-    "kms:Decrypt"
-  ]
-  Resource = "*"
-  Condition = {
-    StringEquals = {
-      "kms:ViaService"    = "ssm.${data.aws_region.current.name}.amazonaws.com"
-      "kms:CallerAccount" = data.aws_caller_identity.current.account_id
-    }
-  }
-}
+      {
+        Sid    = "DecryptSecureStringParameters"
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt"
+        ]
+        Resource = "*"
+        Condition = {
+          StringEquals = {
+            "kms:ViaService"    = "ssm.${data.aws_region.current.name}.amazonaws.com"
+            "kms:CallerAccount" = data.aws_caller_identity.current.account_id
+          }
+        }
+      },
+      {
+        Sid    = "WriteEc2LogsToCloudWatch"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "${aws_cloudwatch_log_group.ec2[0].arn}:*"
+      }
     ]
   })
 }
@@ -252,6 +277,10 @@ resource "aws_iam_instance_profile" "ec2_app" {
 
 resource "aws_instance" "this" {
   count = var.enabled ? var.desired_count : 0
+
+  depends_on = [
+    aws_cloudwatch_log_group.ec2
+  ]
 
   ami                         = data.aws_ami.al2023.id
   instance_type               = var.instance_type

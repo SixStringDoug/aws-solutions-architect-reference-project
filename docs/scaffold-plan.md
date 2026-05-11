@@ -7,7 +7,7 @@ This document outlines the initial scaffold plan for the Task Tracker backend ap
 - Language: Java (Spring Boot recommended)
 - Database: Amazon RDS (PostgreSQL)
 - Optional later addition: DynamoDB for caching/session storage
-- Infrastructure as Code: Terraform (EC2), CloudFormation (Fargate, Elastic Beanstalk)
+- Infrastructure as Code: Terraform (EC2), CloudFormation (Fargate)
 - Monitoring: AWS CloudWatch
 
 ## API Endpoints (Initial)

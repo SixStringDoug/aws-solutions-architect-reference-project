@@ -249,6 +249,12 @@ http://localhost:5173
 - Target group health checks configured against `/health`
 - RDS access restricted to the EC2 application security group
 - EC2 → RDS CRUD validation completed through ALB
+- Dedicated CloudWatch log group added for EC2 operational logs
+- CloudWatch Agent integrated into EC2 bootstrap workflow
+- EC2 bootstrap logs streamed to CloudWatch
+- EC2 application logs streamed to CloudWatch
+- IAM permissions refined for CloudWatch log publishing
+- EC2 operational observability validated end-to-end
 - Full deploy → validate → destroy lifecycle validated
 
 ### Application Layer
@@ -302,6 +308,7 @@ All infrastructure is:
 - IAM roles preferred over static credentials
 - EC2 instance profile used for application artifact and configuration access
 - Least-privilege IAM policies applied progressively
+- EC2 CloudWatch logging permissions scoped to dedicated log group
 - No credentials committed to source control
 - Only architecture tfvars files are committed; all other tfvars (e.g., secrets) are excluded from version control
 - Secrets stored in:
@@ -405,6 +412,10 @@ No billable infrastructure deployed during Phase 1.
   - RDS ingress restricted to EC2 security group only
   - EC2 IAM decrypt permissions refined for SSM SecureString access
   - ALB → EC2 → RDS CRUD flow validated end-to-end
+  - Dedicated CloudWatch log group integrated for EC2 operational visibility
+  - EC2 bootstrap logs centralized in CloudWatch
+  - EC2 application runtime logs centralized in CloudWatch
+  - CloudWatch Agent installation and lifecycle validated on Amazon Linux 2023
   - Full destroy → deploy → validate lifecycle confirmed from clean state
 
 ---
@@ -428,6 +439,7 @@ Both compute paths have been fully validated from a **clean destroyed state**:
 - ✅ Fargate: deploy → stabilize → serve traffic → destroy
 - ✅ EC2: deploy → stabilize → serve traffic → destroy
 - ✅ Shared services (RDS, SSM, S3) function correctly across both architectures
+- ✅ CloudWatch logging validated independently for both EC2 and Fargate paths
 - ✅ No residual dependencies between compute models
 
 This confirms a **production-aligned, architecture-agnostic deployment model**.

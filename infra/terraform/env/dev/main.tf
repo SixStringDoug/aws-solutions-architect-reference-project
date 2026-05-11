@@ -119,9 +119,39 @@ exec > /var/log/user-data.log 2>&1
 
 dnf update -y
 dnf install -y java-17-amazon-corretto awscli
+rpm -Uvh https://amazoncloudwatch-agent-us-east-2.s3.us-east-2.amazonaws.com/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
 
 mkdir -p /opt/tasktracker
 cd /opt/tasktracker
+
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'CWCONFIG'
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/user-data.log",
+            "log_group_name": "/tasktracker-dev/ec2",
+            "log_stream_name": "{instance_id}/user-data.log"
+          },
+          {
+            "file_path": "/opt/tasktracker/app.log",
+            "log_group_name": "/tasktracker-dev/ec2",
+            "log_stream_name": "{instance_id}/app.log"
+          }
+        ]
+      }
+    }
+  }
+}
+CWCONFIG
+
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config \
+  -m ec2 \
+  -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
 aws s3 cp s3://${module.attachments_bucket.bucket_name}/tasktracker.jar tasktracker.jar
 

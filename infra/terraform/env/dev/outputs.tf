@@ -17,3 +17,7 @@ output "ec2_alb_security_group_id" {
 output "ec2_target_group_arn" {
   value = try(module.ec2_networking.target_group_arn, null)
 }
+
+output "ec2_cloudwatch_log_group_name" {
+  value = try(module.ec2_networking.cloudwatch_log_group_name, null)
+}
