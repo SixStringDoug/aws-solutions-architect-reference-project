@@ -298,3 +298,58 @@ resource "aws_instance" "this" {
     Owner       = "Doug"
   }
 }
+
+resource "aws_cloudwatch_metric_alarm" "ec2_status_check_failed" {
+  count = var.enabled ? var.desired_count : 0
+
+  alarm_name          = "${var.name_prefix}-ec2-${count.index + 1}-status-check-failed"
+  alarm_description   = "Alarm when EC2 instance ${count.index + 1} fails system or instance status checks"
+  namespace           = "AWS/EC2"
+  metric_name         = "StatusCheckFailed"
+  statistic           = "Maximum"
+  period              = 60
+  evaluation_periods  = 2
+  threshold           = 1
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    InstanceId = aws_instance.this[count.index].id
+  }
+
+  tags = {
+    Name        = "${var.name_prefix}-ec2-${count.index + 1}-status-check-failed"
+    Project     = "tasktracker"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Owner       = "Doug"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "ec2_alb_unhealthy_hosts" {
+  count = (var.enabled && var.enable_alb) ? 1 : 0
+
+  alarm_name          = "${var.name_prefix}-ec2-alb-unhealthy-hosts"
+  alarm_description   = "Alarm when the EC2 ALB target group has unhealthy targets"
+  namespace           = "AWS/ApplicationELB"
+  metric_name         = "UnHealthyHostCount"
+  statistic           = "Average"
+  period              = 60
+  evaluation_periods  = 2
+  threshold           = 1
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    TargetGroup  = aws_lb_target_group.ec2_app[0].arn_suffix
+    LoadBalancer = aws_lb.ec2_app[0].arn_suffix
+  }
+
+  tags = {
+    Name        = "${var.name_prefix}-ec2-alb-unhealthy-hosts"
+    Project     = "tasktracker"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Owner       = "Doug"
+  }
+}
