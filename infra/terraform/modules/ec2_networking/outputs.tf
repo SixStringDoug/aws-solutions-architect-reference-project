@@ -27,3 +27,18 @@ output "cloudwatch_log_group_name" {
   value       = try(aws_cloudwatch_log_group.ec2[0].name, null)
   description = "CloudWatch log group for EC2 bootstrap and application logs"
 }
+
+output "ec2_status_check_alarm_names" {
+  value       = [for alarm in aws_cloudwatch_metric_alarm.ec2_status_check_failed : alarm.alarm_name]
+  description = "CloudWatch alarm names for EC2 instance status checks"
+}
+
+output "alb_unhealthy_hosts_alarm_name" {
+  value       = try(aws_cloudwatch_metric_alarm.ec2_alb_unhealthy_hosts[0].alarm_name, null)
+  description = "CloudWatch alarm name for ALB unhealthy EC2 targets"
+}
+
+output "alb_target_5xx_alarm_name" {
+  value       = try(aws_cloudwatch_metric_alarm.ec2_alb_target_5xx[0].alarm_name, null)
+  description = "CloudWatch alarm name for ALB target 5XX errors"
+}

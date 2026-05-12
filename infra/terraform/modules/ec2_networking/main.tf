@@ -353,3 +353,31 @@ resource "aws_cloudwatch_metric_alarm" "ec2_alb_unhealthy_hosts" {
     Owner       = "Doug"
   }
 }
+
+resource "aws_cloudwatch_metric_alarm" "ec2_alb_target_5xx" {
+  count = (var.enabled && var.enable_alb) ? 1 : 0
+
+  alarm_name          = "${var.name_prefix}-ec2-alb-target-5xx"
+  alarm_description   = "Alarm when EC2 ALB targets return 5XX errors"
+  namespace           = "AWS/ApplicationELB"
+  metric_name         = "HTTPCode_Target_5XX_Count"
+  statistic           = "Sum"
+  period              = 60
+  evaluation_periods  = 2
+  threshold           = 1
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    TargetGroup  = aws_lb_target_group.ec2_app[0].arn_suffix
+    LoadBalancer = aws_lb.ec2_app[0].arn_suffix
+  }
+
+  tags = {
+    Name        = "${var.name_prefix}-ec2-alb-target-5xx"
+    Project     = "tasktracker"
+    Environment = var.environment
+    ManagedBy   = "terraform"
+    Owner       = "Doug"
+  }
+}

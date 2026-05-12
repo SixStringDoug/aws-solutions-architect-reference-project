@@ -255,6 +255,10 @@ http://localhost:5173
 - EC2 application logs streamed to CloudWatch
 - IAM permissions refined for CloudWatch log publishing
 - EC2 operational observability validated end-to-end
+- CloudWatch EC2 status check alarms added for infrastructure health monitoring
+- CloudWatch ALB unhealthy host alarms added for target health visibility
+- CloudWatch ALB target 5XX alarms added for application failure visibility
+- Terraform outputs added for operational monitoring resources
 - Full deploy → validate → destroy lifecycle validated
 
 ### Application Layer
@@ -359,7 +363,6 @@ No billable infrastructure deployed during Phase 1.
 - Bootstrap + environment teardown validated
 
 ### ✅ Phase 3 – Networking & Compute Basics
-
 - Shared networking foundation
   - Custom VPC deployed
   - Public subnets provisioned across multiple AZs
@@ -417,6 +420,16 @@ No billable infrastructure deployed during Phase 1.
   - EC2 application runtime logs centralized in CloudWatch
   - CloudWatch Agent installation and lifecycle validated on Amazon Linux 2023
   - Full destroy → deploy → validate lifecycle confirmed from clean state
+
+### ✅ Phase 5: Identity, Access Management & Monitoring (In Progress)
+
+- EC2 path
+  - EC2 CloudWatch infrastructure alarms implemented
+  - ALB unhealthy target monitoring implemented
+  - ALB target 5XX monitoring implemented
+  - Terraform operational outputs added for monitoring visibility
+  - Incremental IAM refinement continuing
+  - Additional EC2 operational monitoring planned
 
 ---
 
