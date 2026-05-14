@@ -235,6 +235,9 @@ http://localhost:5173
 - Private task access model enforced (ALB-only ingress)
 - RDS connectivity via Terraform-managed security group rules
 - Stable deployment behavior validated (no task cycling)
+- CloudWatch Fargate healthy host alarm added for service availability visibility
+- CloudWatch Fargate ALB target 5XX alarm added for application failure visibility
+- Terraform outputs added for Fargate operational monitoring resources
 - Full destroy → deploy → validate lifecycle confirmed from clean state
 
 ### Compute Platform – EC2
@@ -422,14 +425,19 @@ No billable infrastructure deployed during Phase 1.
   - Full destroy → deploy → validate lifecycle confirmed from clean state
 
 ### ✅ Phase 5: Identity, Access Management & Monitoring (In Progress)
+- Fargate path
+  - Fargate IAM roles and CloudWatch logging reviewed
+  - Fargate healthy host monitoring implemented
+  - Fargate ALB target 5XX monitoring implemented
+  - Terraform operational outputs added for Fargate monitoring visibility
+  - Fargate Phase 5 monitoring validated from clean deploy
 
 - EC2 path
   - EC2 CloudWatch infrastructure alarms implemented
   - ALB unhealthy target monitoring implemented
   - ALB target 5XX monitoring implemented
   - Terraform operational outputs added for monitoring visibility
-  - Incremental IAM refinement continuing
-  - Additional EC2 operational monitoring planned
+  - EC2 Phase 5 monitoring validated from clean deploy
 
 ---
 
@@ -461,7 +469,7 @@ This confirms a **production-aligned, architecture-agnostic deployment model**.
 
 The project is now ready for:
 
-### ⏭️ Phase 5: Identity, Access Management & Monitoring
+### ⏭️ Phase 6: Resilience & Performance
 
 ---
 

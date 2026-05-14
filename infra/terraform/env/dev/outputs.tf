@@ -33,3 +33,19 @@ output "ec2_alb_unhealthy_hosts_alarm_name" {
 output "ec2_alb_target_5xx_alarm_name" {
   value = try(module.ec2_networking.alb_target_5xx_alarm_name, null)
 }
+
+output "fargate_alb_dns_name" {
+  value = try(aws_cloudformation_stack.ecs_fargate_skeleton[0].outputs["AlbDnsName"], null)
+}
+
+output "fargate_service_name" {
+  value = try(aws_cloudformation_stack.ecs_fargate_skeleton[0].outputs["ServiceName"], null)
+}
+
+output "fargate_healthy_host_count_alarm_name" {
+  value = try(aws_cloudformation_stack.ecs_fargate_skeleton[0].outputs["FargateHealthyHostCountAlarmName"], null)
+}
+
+output "fargate_alb_target_5xx_alarm_name" {
+  value = try(aws_cloudformation_stack.ecs_fargate_skeleton[0].outputs["FargateAlbTarget5xxAlarmName"], null)
+}

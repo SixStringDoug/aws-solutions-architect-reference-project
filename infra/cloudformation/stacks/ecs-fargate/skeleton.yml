@@ -96,6 +96,58 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref AlbTargetGroup
 
+  FargateHealthyHostCountAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${NamePrefix}-fargate-healthy-host-count-low"
+      AlarmDescription: "Alarm when the Fargate target group has no healthy targets"
+      Namespace: AWS/ApplicationELB
+      MetricName: HealthyHostCount
+      Statistic: Minimum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 1
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: TargetGroup
+          Value: !GetAtt AlbTargetGroup.TargetGroupFullName
+        - Name: LoadBalancer
+          Value: !GetAtt ApplicationLoadBalancer.LoadBalancerFullName
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  FargateAlbTarget5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${NamePrefix}-fargate-alb-target-5xx"
+      AlarmDescription: "Alarm when Fargate ALB targets return 5XX errors"
+      Namespace: AWS/ApplicationELB
+      MetricName: HTTPCode_Target_5XX_Count
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: TargetGroup
+          Value: !GetAtt AlbTargetGroup.TargetGroupFullName
+        - Name: LoadBalancer
+          Value: !GetAtt ApplicationLoadBalancer.LoadBalancerFullName
+      Tags:
+        - Key: Project
+          Value: !Ref Project
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
   EcsLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -167,3 +219,9 @@ Outputs:
 
   AlbDnsName:
     Value: !GetAtt ApplicationLoadBalancer.DNSName
+
+  FargateHealthyHostCountAlarmName:
+    Value: !Ref FargateHealthyHostCountAlarm
+
+  FargateAlbTarget5xxAlarmName:
+    Value: !Ref FargateAlbTarget5xxAlarm
