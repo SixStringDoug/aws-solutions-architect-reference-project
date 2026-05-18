@@ -3,9 +3,14 @@ output "security_group_id" {
   description = "EC2 security group id"
 }
 
-output "instance_ids" {
-  value       = [for i in aws_instance.this : i.id]
-  description = "EC2 instance ids"
+output "autoscaling_group_name" {
+  value       = try(aws_autoscaling_group.ec2_app[0].name, null)
+  description = "EC2 Auto Scaling Group name"
+}
+
+output "launch_template_id" {
+  value       = try(aws_launch_template.ec2_app[0].id, null)
+  description = "EC2 launch template ID"
 }
 
 output "alb_dns_name" {
@@ -29,8 +34,8 @@ output "cloudwatch_log_group_name" {
 }
 
 output "ec2_status_check_alarm_names" {
-  value       = [for alarm in aws_cloudwatch_metric_alarm.ec2_status_check_failed : alarm.alarm_name]
-  description = "CloudWatch alarm names for EC2 instance status checks"
+  value       = try([aws_cloudwatch_metric_alarm.ec2_asg_in_service_instances_low[0].alarm_name], [])
+  description = "CloudWatch alarm names for EC2 Auto Scaling Group health"
 }
 
 output "alb_unhealthy_hosts_alarm_name" {

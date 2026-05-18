@@ -163,14 +163,6 @@ resource "aws_lb_target_group" "ec2_app" {
   }
 }
 
-resource "aws_lb_target_group_attachment" "ec2_app" {
-  count = (var.enabled && var.enable_alb) ? length(aws_instance.this) : 0
-
-  target_group_arn = aws_lb_target_group.ec2_app[0].arn
-  target_id        = aws_instance.this[count.index].id
-  port             = 8080
-}
-
 resource "aws_lb_listener" "http" {
   count = (var.enabled && var.enable_alb) ? 1 : 0
 
@@ -275,23 +267,38 @@ resource "aws_iam_instance_profile" "ec2_app" {
   role = aws_iam_role.ec2_app[0].name
 }
 
-resource "aws_instance" "this" {
-  count = var.enabled ? var.desired_count : 0
+resource "aws_launch_template" "ec2_app" {
+  count = var.enabled ? 1 : 0
 
-  depends_on = [
-    aws_cloudwatch_log_group.ec2
-  ]
+  name_prefix   = "${var.name_prefix}-ec2-lt-"
+  image_id      = data.aws_ami.al2023.id
+  instance_type = var.instance_type
 
-  ami                         = data.aws_ami.al2023.id
-  instance_type               = var.instance_type
-  subnet_id                   = var.subnet_ids[count.index % length(var.subnet_ids)]
-  vpc_security_group_ids      = [aws_security_group.ec2[0].id]
-  associate_public_ip_address = true
-  iam_instance_profile        = aws_iam_instance_profile.ec2_app[0].name
-  user_data                   = var.user_data
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2_app[0].name
+  }
+
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.ec2[0].id]
+  }
+
+  user_data = base64encode(var.user_data)
+
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Name        = "${var.name_prefix}-ec2-asg-instance"
+      Project     = "tasktracker"
+      Environment = var.environment
+      ManagedBy   = "terraform"
+      Owner       = "Doug"
+    }
+  }
 
   tags = {
-    Name        = "${var.name_prefix}-ec2-${count.index + 1}"
+    Name        = "${var.name_prefix}-ec2-launch-template"
     Project     = "tasktracker"
     Environment = var.environment
     ManagedBy   = "terraform"
@@ -299,26 +306,82 @@ resource "aws_instance" "this" {
   }
 }
 
-resource "aws_cloudwatch_metric_alarm" "ec2_status_check_failed" {
-  count = var.enabled ? var.desired_count : 0
+resource "aws_autoscaling_group" "ec2_app" {
+  count = var.enabled ? 1 : 0
 
-  alarm_name          = "${var.name_prefix}-ec2-${count.index + 1}-status-check-failed"
-  alarm_description   = "Alarm when EC2 instance ${count.index + 1} fails system or instance status checks"
-  namespace           = "AWS/EC2"
-  metric_name         = "StatusCheckFailed"
-  statistic           = "Maximum"
+  name                = "${var.name_prefix}-ec2-asg"
+  desired_capacity    = var.desired_count
+  min_size            = var.desired_count
+  max_size            = var.desired_count
+  vpc_zone_identifier = var.subnet_ids
+
+  health_check_type         = var.enable_alb ? "ELB" : "EC2"
+  health_check_grace_period = 180
+
+  target_group_arns = var.enable_alb ? [aws_lb_target_group.ec2_app[0].arn] : []
+
+  launch_template {
+    id      = aws_launch_template.ec2_app[0].id
+    version = "$Latest"
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "${var.name_prefix}-ec2-asg-instance"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Project"
+    value               = "tasktracker"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Environment"
+    value               = var.environment
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "ManagedBy"
+    value               = "terraform"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Owner"
+    value               = "Doug"
+    propagate_at_launch = true
+  }
+
+  depends_on = [
+    aws_cloudwatch_log_group.ec2,
+    aws_lb_listener.http
+  ]
+}
+
+resource "aws_cloudwatch_metric_alarm" "ec2_asg_in_service_instances_low" {
+  count = var.enabled ? 1 : 0
+
+  alarm_name        = "${var.name_prefix}-ec2-asg-in-service-instances-low"
+  alarm_description = "Alarm when the EC2 Auto Scaling Group has fewer in-service instances than desired"
+
+  namespace           = "AWS/AutoScaling"
+  metric_name         = "GroupInServiceInstances"
+  statistic           = "Minimum"
   period              = 60
   evaluation_periods  = 2
-  threshold           = 1
-  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = var.desired_count
+  comparison_operator = "LessThanThreshold"
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    InstanceId = aws_instance.this[count.index].id
+    AutoScalingGroupName = aws_autoscaling_group.ec2_app[0].name
   }
 
   tags = {
-    Name        = "${var.name_prefix}-ec2-${count.index + 1}-status-check-failed"
+    Name        = "${var.name_prefix}-ec2-asg-in-service-instances-low"
     Project     = "tasktracker"
     Environment = var.environment
     ManagedBy   = "terraform"

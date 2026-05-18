@@ -11,7 +11,7 @@ enable_cloudformation = false
 enable_ecr            = false
 
 ec2_instance_type = "t3.micro"
-ec2_desired_count = 1
+ec2_desired_count = 2
 
 account_id = "403951654678"
 
