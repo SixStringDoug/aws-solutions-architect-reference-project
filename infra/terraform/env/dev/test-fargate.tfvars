@@ -10,8 +10,9 @@ nat_cost_acknowledged = false
 enable_cloudformation = false
 enable_ecr            = true
 
-ec2_instance_type = "t3.micro"
-ec2_desired_count = 1
+ec2_instance_type       = "t3.micro"
+ec2_desired_count       = 1
+ec2_use_private_subnets = false
 
 account_id = "403951654678"
 

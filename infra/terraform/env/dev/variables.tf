@@ -82,6 +82,12 @@ variable "ec2_desired_count" {
   default     = 1
 }
 
+variable "ec2_use_private_subnets" {
+  description = "Place EC2 ASG instances in private subnets instead of public subnets"
+  type        = bool
+  default     = false
+}
+
 variable "enable_ec2_alb" {
   description = "Enable Application Load Balancer for EC2 path"
   type        = bool

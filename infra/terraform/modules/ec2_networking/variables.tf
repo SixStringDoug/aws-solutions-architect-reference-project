@@ -10,8 +10,13 @@ variable "vpc_id" {
   type = string
 }
 
-variable "subnet_ids" {
-  description = "Subnets to place instances into (public subnets for this phase)."
+variable "alb_subnet_ids" {
+  description = "Public subnets for the internet-facing Application Load Balancer"
+  type        = list(string)
+}
+
+variable "instance_subnet_ids" {
+  description = "Subnets where EC2 ASG instances are launched"
   type        = list(string)
 }
 
@@ -23,6 +28,12 @@ variable "instance_type" {
 variable "desired_count" {
   type    = number
   default = 1
+}
+
+variable "associate_public_ip_address" {
+  description = "Whether EC2 instances launched by the ASG should receive public IP addresses"
+  type        = bool
+  default     = true
 }
 
 variable "allow_ssh" {

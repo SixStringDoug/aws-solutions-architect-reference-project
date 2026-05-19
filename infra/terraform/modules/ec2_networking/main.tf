@@ -120,7 +120,7 @@ resource "aws_lb" "ec2_app" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb[0].id]
-  subnets            = var.subnet_ids
+  subnets            = var.alb_subnet_ids
 
   tags = {
     Name        = "${var.name_prefix}-ec2-alb"
@@ -279,7 +279,7 @@ resource "aws_launch_template" "ec2_app" {
   }
 
   network_interfaces {
-    associate_public_ip_address = true
+    associate_public_ip_address = var.associate_public_ip_address
     security_groups             = [aws_security_group.ec2[0].id]
   }
 
@@ -313,7 +313,7 @@ resource "aws_autoscaling_group" "ec2_app" {
   desired_capacity    = var.desired_count
   min_size            = var.desired_count
   max_size            = var.desired_count
-  vpc_zone_identifier = var.subnet_ids
+  vpc_zone_identifier = var.instance_subnet_ids
 
   health_check_type         = var.enable_alb ? "ELB" : "EC2"
   health_check_grace_period = 180

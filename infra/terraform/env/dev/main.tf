@@ -90,8 +90,10 @@ module "ec2_networking" {
   enabled    = var.enable_ec2
   enable_alb = var.enable_ec2_alb
 
-  vpc_id     = module.networking[0].vpc_id
-  subnet_ids = module.networking[0].public_subnet_ids
+  vpc_id                      = module.networking[0].vpc_id
+  alb_subnet_ids              = module.networking[0].public_subnet_ids
+  instance_subnet_ids         = var.ec2_use_private_subnets ? module.networking[0].private_subnet_ids : module.networking[0].public_subnet_ids
+  associate_public_ip_address = !var.ec2_use_private_subnets
 
   instance_type = var.ec2_instance_type
   desired_count = var.ec2_desired_count
