@@ -181,7 +181,7 @@ http://localhost:5173
 ```
 
 ---
-## 🏗 Infrastructure Overview (Phase 4 Complete)
+## 🏗 Infrastructure Overview
 ### Remote Terraform State
 - S3 backend bucket
 - DynamoDB state locking
@@ -217,10 +217,12 @@ http://localhost:5173
 
 ### Networking Foundation
 - Custom VPC provisioned for application workloads
-- Public subnets across multiple AZs
-- Internet Gateway + public routing
-- Baseline security groups for workload access
-- RDS aligned to the custom VPC for EC2-based connectivity
+- Public and private subnets provisioned across multiple AZs
+- Internet Gateway + public routing configured
+- NAT Gateway routing implemented for private subnet outbound access
+- Baseline security groups for workload isolation
+- Public ALB → private compute routing model implemented
+- RDS aligned to the custom VPC for EC2 and Fargate connectivity
 
 ### Compute Platform – ECS Fargate
 - ECS Cluster provisioned
@@ -262,12 +264,25 @@ http://localhost:5173
 - CloudWatch ALB unhealthy host alarms added for target health visibility
 - CloudWatch ALB target 5XX alarms added for application failure visibility
 - Terraform outputs added for operational monitoring resources
+- Launch Template introduced for immutable EC2 instance configuration
+- Auto Scaling Group (ASG) introduced for resilient EC2 orchestration
+- Multi-instance EC2 deployment validated across multiple Availability Zones
+- ALB target registration managed dynamically through ASG integration
+- EC2 desired/min/max capacity controls implemented
+- EC2 instance replacement behavior validated through intentional termination testing
+- Self-healing ASG recovery behavior validated end-to-end
+- Private EC2 subnet deployment implemented
+- Public internet-facing ALB separated from private EC2 application tier
+- NAT-backed outbound bootstrap access validated for private EC2 instances
+- Public IP assignment removed from EC2 application instances
+- Full CRUD validation completed through ALB → private EC2 → RDS routing path
 - Full deploy → validate → destroy lifecycle validated
 
 ### Application Layer
 
 - ALB → ECS → RDS architecture (Fargate)
-- ALB → EC2 → RDS architecture (EC2)
+- Public ALB → private EC2 Auto Scaling Group → private RDS architecture (EC2)
+- Multi-instance EC2 resiliency validated through Auto Scaling replacement behavior
 - HTTP routing via ALB
 - `/health` endpoint used for load balancer health checks
 - Zero direct task exposure (Fargate)
@@ -333,7 +348,7 @@ All infrastructure is:
 
 ## 📍 Current Status
 
-### ✅ Pre-Phase 1 (Application Baseline Complete)
+### ✅ Pre-Phase 1
 Backend rebuilt and verified
 - Canonical JAR artifact created
 - Frontend wired and functional
@@ -341,7 +356,7 @@ Backend rebuilt and verified
 - Environment-based configuration confirmed
 - GitHub repository structured and published
 
-### ✅ Phase 1 - Foundations & Core Services (Complete)
+### ✅ Phase 1 - Foundations & Core Services
 - AWS account provisioned
 - Root MFA configured
 - IAM admin user created with MFA
@@ -424,7 +439,7 @@ No billable infrastructure deployed during Phase 1.
   - CloudWatch Agent installation and lifecycle validated on Amazon Linux 2023
   - Full destroy → deploy → validate lifecycle confirmed from clean state
 
-### ✅ Phase 5: Identity, Access Management & Monitoring (In Progress)
+### ✅ Phase 5: Identity, Access Management & Monitoring
 - Fargate path
   - Fargate IAM roles and CloudWatch logging reviewed
   - Fargate healthy host monitoring implemented
@@ -439,6 +454,22 @@ No billable infrastructure deployed during Phase 1.
   - Terraform operational outputs added for monitoring visibility
   - EC2 Phase 5 monitoring validated from clean deploy
 
+### ✅ Phase 6: Resilience & Performance
+- EC2 path
+  - Launch Template introduced for immutable infrastructure behavior
+  - Auto Scaling Group (ASG) introduced
+  - Multi-instance deployment validated across multiple Availability Zones
+  - Desired/min/max capacity controls implemented
+  - ALB target registration integrated with ASG lifecycle
+  - Instance replacement behavior validated through intentional EC2 termination
+  - Self-healing recovery validated end-to-end
+  - Private EC2 subnet migration completed
+  - Public ALB retained as internet ingress layer
+  - EC2 application instances no longer publicly addressable
+  - NAT-backed outbound bootstrap access validated
+  - Full ALB → private EC2 → RDS CRUD validation completed
+  - Full deploy → validate → destroy lifecycle validated after resiliency migration
+
 ---
 
 ## 🧠 Key Architectural Lessons Learned
@@ -450,6 +481,12 @@ No billable infrastructure deployed during Phase 1.
 - Application startup time must be aligned with ALB health check configuration
 - ECS task failures are often orchestration issues—not application failures
 - A single application artifact can successfully support multiple compute platforms when configuration is externalized
+- Public load balancers and private compute tiers should use independently controlled subnet placement
+- Auto Scaling Groups fundamentally change EC2 lifecycle ownership and recovery behavior
+- Private application tiers improve security posture while preserving public application accessibility through ALBs
+- Immutable replacement behavior is easier to validate and reason about than in-place instance repair
+- Infrastructure resiliency validation should include intentional failure testing, not only successful deployments
+- Shared infrastructure can support multiple independent compute models when architectural boundaries remain clean
 
 ---
 
@@ -462,6 +499,9 @@ Both compute paths have been fully validated from a **clean destroyed state**:
 - ✅ Shared services (RDS, SSM, S3) function correctly across both architectures
 - ✅ CloudWatch logging validated independently for both EC2 and Fargate paths
 - ✅ No residual dependencies between compute models
+- ✅ EC2 Auto Scaling replacement behavior validated through intentional instance termination
+- ✅ Private EC2 subnet architecture validated successfully
+- ✅ Public ALB → private EC2 → private RDS architecture validated end-to-end
 
 This confirms a **production-aligned, architecture-agnostic deployment model**.
 
@@ -469,7 +509,7 @@ This confirms a **production-aligned, architecture-agnostic deployment model**.
 
 The project is now ready for:
 
-### ⏭️ Phase 6: Resilience & Performance
+### ⏭️ Phase 6: Resilience & Performance (Fargate)
 
 ---
 
