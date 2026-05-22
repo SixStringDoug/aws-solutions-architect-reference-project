@@ -8,6 +8,7 @@ enable_ec2_alb              = true
 enable_nat_gateway          = true
 nat_cost_acknowledged       = true
 fargate_use_private_subnets = false
+fargate_desired_count       = 1
 enable_cloudformation       = false
 enable_ecr                  = false
 

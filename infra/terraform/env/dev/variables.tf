@@ -112,6 +112,12 @@ variable "fargate_use_private_subnets" {
   default     = false
 }
 
+variable "fargate_desired_count" {
+  description = "Desired number of ECS/Fargate tasks"
+  type        = number
+  default     = 1
+}
+
 # -----------------------------
 # ECS Container Deployment
 # -----------------------------

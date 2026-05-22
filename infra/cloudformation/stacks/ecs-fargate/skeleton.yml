@@ -46,6 +46,10 @@ Parameters:
       - ENABLED
       - DISABLED
 
+  DesiredCount:
+    Type: Number
+    Default: 1
+
   AlbSecurityGroupId:
     Type: String
 
@@ -198,6 +202,7 @@ Resources:
         PublicSubnetIds: !Ref PublicSubnetIds
         TaskSubnetIds: !Ref TaskSubnetIds
         AssignPublicIp: !Ref AssignPublicIp
+        DesiredCount: !Ref DesiredCount
         TasksSecurityGroupId: !Ref TasksSecurityGroupId
         ContainerImage: !Ref ContainerImage
         AttachmentsBucketName: !Sub "${NamePrefix}-attachments"

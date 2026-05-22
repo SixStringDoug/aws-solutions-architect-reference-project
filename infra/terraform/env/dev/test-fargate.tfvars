@@ -8,7 +8,8 @@ enable_ec2_alb              = false
 enable_nat_gateway          = true
 nat_cost_acknowledged       = true
 fargate_use_private_subnets = true
-enable_cloudformation       = true
+fargate_desired_count       = 2
+enable_cloudformation       = false
 enable_ecr                  = true
 
 ec2_instance_type       = "t3.micro"
