@@ -264,6 +264,8 @@ resource "aws_cloudformation_stack" "ecs_fargate_skeleton" {
 
     VpcId                = module.networking[0].vpc_id
     PublicSubnetIds      = join(",", module.networking[0].public_subnet_ids)
+    TaskSubnetIds        = join(",", var.fargate_use_private_subnets ? module.networking[0].private_subnet_ids : module.networking[0].public_subnet_ids)
+    AssignPublicIp       = var.fargate_use_private_subnets ? "DISABLED" : "ENABLED"
     AlbSecurityGroupId   = aws_security_group.fargate_alb[0].id
     TasksSecurityGroupId = aws_security_group.fargate_tasks[0].id
   }

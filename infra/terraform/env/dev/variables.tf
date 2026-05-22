@@ -106,6 +106,12 @@ variable "enable_ecr" {
   default     = false
 }
 
+variable "fargate_use_private_subnets" {
+  description = "Place Fargate tasks in private subnets instead of public subnets"
+  type        = bool
+  default     = false
+}
+
 # -----------------------------
 # ECS Container Deployment
 # -----------------------------

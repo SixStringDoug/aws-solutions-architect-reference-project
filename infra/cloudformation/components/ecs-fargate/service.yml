@@ -23,6 +23,16 @@ Parameters:
   PublicSubnetIds:
     Type: String
 
+  TaskSubnetIds:
+    Type: String
+
+  AssignPublicIp:
+    Type: String
+    Default: ENABLED
+    AllowedValues:
+      - ENABLED
+      - DISABLED
+
   TasksSecurityGroupId:
     Type: String
 
@@ -198,13 +208,13 @@ Resources:
           ContainerPort: !Ref ContainerPort
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
+          AssignPublicIp: !Ref AssignPublicIp
           SecurityGroups:
             - !Ref TasksSecurityGroupId
           Subnets:
             Fn::Split:
               - ","
-              - !Ref PublicSubnetIds
+              - !Ref TaskSubnetIds
 
 Outputs:
   TaskDefinitionArn:

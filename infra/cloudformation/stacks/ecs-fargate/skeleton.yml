@@ -36,6 +36,16 @@ Parameters:
   PublicSubnetIds:
     Type: String
 
+  TaskSubnetIds:
+    Type: String
+
+  AssignPublicIp:
+    Type: String
+    Default: ENABLED
+    AllowedValues:
+      - ENABLED
+      - DISABLED
+
   AlbSecurityGroupId:
     Type: String
 
@@ -186,6 +196,8 @@ Resources:
         ClusterName: !Ref EcsCluster
         VpcId: !Ref VpcId
         PublicSubnetIds: !Ref PublicSubnetIds
+        TaskSubnetIds: !Ref TaskSubnetIds
+        AssignPublicIp: !Ref AssignPublicIp
         TasksSecurityGroupId: !Ref TasksSecurityGroupId
         ContainerImage: !Ref ContainerImage
         AttachmentsBucketName: !Sub "${NamePrefix}-attachments"
