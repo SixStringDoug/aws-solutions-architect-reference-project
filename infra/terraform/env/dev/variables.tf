@@ -118,6 +118,30 @@ variable "fargate_desired_count" {
   default     = 1
 }
 
+variable "fargate_enable_service_auto_scaling" {
+  description = "Enable ECS Service Auto Scaling for the Fargate service"
+  type        = bool
+  default     = false
+}
+
+variable "fargate_service_min_capacity" {
+  description = "Minimum number of Fargate tasks for ECS Service Auto Scaling"
+  type        = number
+  default     = 2
+}
+
+variable "fargate_service_max_capacity" {
+  description = "Maximum number of Fargate tasks for ECS Service Auto Scaling"
+  type        = number
+  default     = 3
+}
+
+variable "fargate_service_cpu_target_value" {
+  description = "Target average CPU utilization percentage for Fargate service target tracking"
+  type        = number
+  default     = 60
+}
+
 # -----------------------------
 # ECS Container Deployment
 # -----------------------------

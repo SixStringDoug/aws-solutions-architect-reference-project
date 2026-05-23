@@ -262,13 +262,17 @@ resource "aws_cloudformation_stack" "ecs_fargate_skeleton" {
     ArtifactPrefix = var.name_prefix
     ContainerImage = var.container_image
 
-    VpcId                = module.networking[0].vpc_id
-    PublicSubnetIds      = join(",", module.networking[0].public_subnet_ids)
-    TaskSubnetIds        = join(",", var.fargate_use_private_subnets ? module.networking[0].private_subnet_ids : module.networking[0].public_subnet_ids)
-    AssignPublicIp       = var.fargate_use_private_subnets ? "DISABLED" : "ENABLED"
-    DesiredCount         = tostring(var.fargate_desired_count)
-    AlbSecurityGroupId   = aws_security_group.fargate_alb[0].id
-    TasksSecurityGroupId = aws_security_group.fargate_tasks[0].id
+    VpcId                    = module.networking[0].vpc_id
+    PublicSubnetIds          = join(",", module.networking[0].public_subnet_ids)
+    TaskSubnetIds            = join(",", var.fargate_use_private_subnets ? module.networking[0].private_subnet_ids : module.networking[0].public_subnet_ids)
+    AssignPublicIp           = var.fargate_use_private_subnets ? "DISABLED" : "ENABLED"
+    DesiredCount             = tostring(var.fargate_desired_count)
+    EnableServiceAutoScaling = tostring(var.fargate_enable_service_auto_scaling)
+    ServiceMinCapacity       = tostring(var.fargate_service_min_capacity)
+    ServiceMaxCapacity       = tostring(var.fargate_service_max_capacity)
+    ServiceCpuTargetValue    = tostring(var.fargate_service_cpu_target_value)
+    AlbSecurityGroupId       = aws_security_group.fargate_alb[0].id
+    TasksSecurityGroupId     = aws_security_group.fargate_tasks[0].id
   }
 
   tags = {

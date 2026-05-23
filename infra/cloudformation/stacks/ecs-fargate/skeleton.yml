@@ -50,11 +50,33 @@ Parameters:
     Type: Number
     Default: 1
 
+  EnableServiceAutoScaling:
+    Type: String
+    Default: "false"
+    AllowedValues:
+      - "true"
+      - "false"
+
+  ServiceMinCapacity:
+    Type: Number
+    Default: 2
+
+  ServiceMaxCapacity:
+    Type: Number
+    Default: 3
+
+  ServiceCpuTargetValue:
+    Type: Number
+    Default: 60
+
   AlbSecurityGroupId:
     Type: String
 
   TasksSecurityGroupId:
     Type: String
+
+Conditions:
+  EnableServiceAutoScalingCondition: !Equals [!Ref EnableServiceAutoScaling, "true"]
 
 Resources:
 
@@ -216,6 +238,35 @@ Resources:
         HealthCheckGracePeriodSeconds: "60"
         MaximumPercent: "200"
         MinimumHealthyPercent: "100"
+
+  EcsServiceScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Condition: EnableServiceAutoScalingCondition
+    DependsOn:
+      - EcsService
+    Properties:
+      MaxCapacity: !Ref ServiceMaxCapacity
+      MinCapacity: !Ref ServiceMinCapacity
+      ResourceId: !Sub "service/${EcsCluster}/tasktracker-dev-service"
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  EcsServiceCpuScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Condition: EnableServiceAutoScalingCondition
+    DependsOn:
+      - EcsServiceScalableTarget
+    Properties:
+      PolicyName: !Sub "${NamePrefix}-fargate-cpu-target-tracking"
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref EcsServiceScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: !Ref ServiceCpuTargetValue
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        ScaleInCooldown: 120
+        ScaleOutCooldown: 60
 
 Outputs:
   ClusterName:
