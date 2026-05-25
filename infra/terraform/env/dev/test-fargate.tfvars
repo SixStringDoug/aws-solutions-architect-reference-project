@@ -15,7 +15,7 @@ container_image = "403951654678.dkr.ecr.us-east-2.amazonaws.com/tasktracker-dev-
 # Fargate Architecture (Active)
 # -----------------------------
 
-enable_cloudformation = true
+enable_cloudformation = false
 
 fargate_use_private_subnets = true
 fargate_desired_count       = 2

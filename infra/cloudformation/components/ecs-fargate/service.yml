@@ -193,6 +193,8 @@ Resources:
       ServiceName: !Sub "${NamePrefix}-service"
       Cluster: !Ref ClusterName
       LaunchType: FARGATE
+      DeploymentController:
+        Type: ECS
       DesiredCount: !Ref DesiredCount
       HealthCheckGracePeriodSeconds: !Ref HealthCheckGracePeriodSeconds
       DeploymentConfiguration:

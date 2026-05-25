@@ -112,12 +112,32 @@ terraform apply
 ```bash
 cd infra/terraform/env/dev
 terraform init -reconfigure
+terraform fmt -recursive
+terraform validate
 ```
 
 Choose Fargate or EC2 deployment **(choose only one configuration)**.
 
 Fargate:
 ```bash
+# Confirm:
+# infra/terraform/env/dev/test-fargate.tfvars
+# enable_cloudformation = false
+
+terraform apply -var-file="test-fargate.tfvars"
+
+# Return to project root
+cd ../../../../
+# Build Docker image, push to ECR,
+# and publish nested CloudFormation artifacts
+./infra/scripts/push-backend-image.sh ph4
+
+# Confirm:
+# infra/terraform/env/dev/test-fargate.tfvars
+# enable_cloudformation = true
+
+cd infra/terraform/env/dev
+terraform init -reconfigure
 terraform apply -var-file="test-fargate.tfvars"
 ```
 
@@ -155,9 +175,10 @@ terraform destroy
 ./mvnw clean package -DskipTests
 java -jar artifacts/tasktracker.jar
 ```
-Note: The application JAR is not stored in Git.
-Build locally before deployment:
+Note: The application JAR is not stored in Git.  Build locally before deployment:
+```bash
 ./mvnw clean package -DskipTests
+```
 
 ### Health Check:
 ```bash
@@ -237,10 +258,16 @@ http://localhost:5173
 - Private task access model enforced (ALB-only ingress)
 - RDS connectivity via Terraform-managed security group rules
 - Stable deployment behavior validated (no task cycling)
+- ECS multi-task deployment validated
+- ECS service auto scaling implemented and validated
+- ECS deployment resiliency enhancements implemented
+- ECS deployment circuit breaker with rollback enabled and validated
+- ECS rolling deployment behavior validated through forced redeployment testing
 - CloudWatch Fargate healthy host alarm added for service availability visibility
 - CloudWatch Fargate ALB target 5XX alarm added for application failure visibility
 - Terraform outputs added for Fargate operational monitoring resources
-- Full destroy → deploy → validate lifecycle confirmed from clean state
+- Automated nested CloudFormation artifact publishing integrated into deployment workflow
+- Full deploy → validate → destroy lifecycle validated
 
 ### Compute Platform – EC2
 - EC2 instance provisioning validated in custom VPC
@@ -283,6 +310,8 @@ http://localhost:5173
 - ALB → ECS → RDS architecture (Fargate)
 - Public ALB → private EC2 Auto Scaling Group → private RDS architecture (EC2)
 - Multi-instance EC2 resiliency validated through Auto Scaling replacement behavior
+- ECS rolling deployment behavior validated through forced redeployment testing
+- ECS deployment resiliency validated with zero-downtime task replacement behavior
 - HTTP routing via ALB
 - `/health` endpoint used for load balancer health checks
 - Zero direct task exposure (Fargate)
@@ -455,6 +484,19 @@ No billable infrastructure deployed during Phase 1.
   - EC2 Phase 5 monitoring validated from clean deploy
 
 ### ✅ Phase 6: Resilience & Performance
+- Fargate path
+  - Private Fargate task subnet migration completed
+  - Public ALB retained as internet ingress layer
+  - ECS tasks no longer publicly addressable
+  - Multi-task ECS deployment validated
+  - ECS service auto scaling implemented and validated
+  - ECS deployment resiliency enhancements implemented
+  - ECS deployment circuit breaker with rollback enabled validated
+  - ECS rolling deployment behavior validated through forced redeployment testing
+  - Automated nested CloudFormation artifact publishing integrated into deployment workflow
+  - Full private-task ALB → ECS → RDS CRUD validation completed
+  - Full deploy → validate → destroy lifecycle validated after resiliency enhancements
+
 - EC2 path
   - Launch Template introduced for immutable infrastructure behavior
   - Auto Scaling Group (ASG) introduced
@@ -474,19 +516,28 @@ No billable infrastructure deployed during Phase 1.
 
 ## 🧠 Key Architectural Lessons Learned
 
+### Infrastructure & Orchestration
 - Infrastructure ownership must be clearly defined:
   - Terraform owns networking and security groups
   - CloudFormation consumes those resources
 - Cross-stack dependencies (Terraform ↔ CloudFormation) can cause timing failures if not properly designed
+- Nested CloudFormation stacks require deterministic artifact publication workflows to prevent deployment drift
+- Shared infrastructure can support multiple independent compute models when architectural boundaries remain clean
+
+### Deployment & Resiliency
 - Application startup time must be aligned with ALB health check configuration
 - ECS task failures are often orchestration issues—not application failures
-- A single application artifact can successfully support multiple compute platforms when configuration is externalized
-- Public load balancers and private compute tiers should use independently controlled subnet placement
-- Auto Scaling Groups fundamentally change EC2 lifecycle ownership and recovery behavior
-- Private application tiers improve security posture while preserving public application accessibility through ALBs
-- Immutable replacement behavior is easier to validate and reason about than in-place instance repair
 - Infrastructure resiliency validation should include intentional failure testing, not only successful deployments
-- Shared infrastructure can support multiple independent compute models when architectural boundaries remain clean
+- Immutable replacement behavior is easier to validate and reason about than in-place instance repair
+- Not every configurable infrastructure behavior should be exposed as a parameter
+- ECS deployment resiliency features are more reliable as architecture defaults than environment toggles
+- Clean-room rebuild testing exposes deployment lifecycle issues that incremental updates can hide
+
+### Networking & Architecture
+- Public load balancers and private compute tiers should use independently controlled subnet placement
+- Private application tiers improve security posture while preserving public application accessibility through ALBs
+- Auto Scaling Groups fundamentally change EC2 lifecycle ownership and recovery behavior
+- A single application artifact can successfully support multiple compute platforms when configuration is externalized
 
 ---
 
@@ -494,22 +545,33 @@ No billable infrastructure deployed during Phase 1.
 
 Both compute paths have been fully validated from a **clean destroyed state**:
 
+### Fargate Validation
 - ✅ Fargate: deploy → stabilize → serve traffic → destroy
+- ✅ ECS multi-task deployment validated
+- ✅ ECS service auto scaling implemented and validated
+- ✅ ECS rolling deployment behavior validated through forced redeployment testing
+- ✅ Automated nested CloudFormation artifact publishing workflow validated from clean state
+- ✅ Full private-task ALB → ECS → RDS architecture validated end-to-end
+
+### EC2 Validation
 - ✅ EC2: deploy → stabilize → serve traffic → destroy
-- ✅ Shared services (RDS, SSM, S3) function correctly across both architectures
-- ✅ CloudWatch logging validated independently for both EC2 and Fargate paths
-- ✅ No residual dependencies between compute models
 - ✅ EC2 Auto Scaling replacement behavior validated through intentional instance termination
 - ✅ Private EC2 subnet architecture validated successfully
 - ✅ Public ALB → private EC2 → private RDS architecture validated end-to-end
+
+### Shared Validation
+- ✅ Shared services (RDS, SSM, S3) function correctly across both architectures
+- ✅ CloudWatch logging validated independently for both EC2 and Fargate paths
+- ✅ No residual dependencies between compute models
+- ✅ Full clean-room rebuild validation completed for both architectures
 
 This confirms a **production-aligned, architecture-agnostic deployment model**.
 
 ---
 
-The project is now ready for:
+### The project is now ready for:
 
-### ⏭️ Phase 6: Resilience & Performance (Fargate)
+### ⏭️ Phase 7: Governance, Automation & Cost Management
 
 ---
 
