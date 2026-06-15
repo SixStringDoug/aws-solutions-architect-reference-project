@@ -512,6 +512,11 @@ No billable infrastructure deployed during Phase 1.
   - Full ALB → private EC2 → RDS CRUD validation completed
   - Full deploy → validate → destroy lifecycle validated after resiliency migration
 
+
+### ✅ Phase 7: Governance, Automation & Cost Management
+- AWS Well-Architected Tool Review
+  - As part of Phase 7, an AWS Well-Architected Framework review was performed against the completed EC2 architecture using the AWS Well-Architected Tool. The review evaluated the workload across the six Well-Architected pillars: Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization, and Sustainability. The assessment confirmed that the project successfully implemented core AWS best practices including CloudWatch monitoring, IAM role separation, Systems Manager Parameter Store integration, Application Load Balancer health checks, Auto Scaling Group self-healing, infrastructure as code, budget monitoring, and full resource lifecycle management. The review identified several improvement opportunities, including distributed tracing, user experience telemetry, formal cloud financial governance processes, and sustainability-driven Region selection. These findings were intentionally accepted as out of scope for this single-developer educational project and reflect enterprise-scale recommendations rather than gaps in the project's stated objectives. The review served as a final architecture validation exercise and demonstrated the ability to assess AWS workloads using the same framework employed in professional AWS architecture reviews.
+
 ---
 
 ## 🧠 Key Architectural Lessons Learned
