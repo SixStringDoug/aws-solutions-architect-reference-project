@@ -515,7 +515,16 @@ No billable infrastructure deployed during Phase 1.
 
 ### ✅ Phase 7: Governance, Automation & Cost Management
 - AWS Well-Architected Tool Review
-  - As part of Phase 7, an AWS Well-Architected Framework review was performed against the completed EC2 architecture using the AWS Well-Architected Tool. The review evaluated the workload across the six Well-Architected pillars: Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization, and Sustainability. The assessment confirmed that the project successfully implemented core AWS best practices including CloudWatch monitoring, IAM role separation, Systems Manager Parameter Store integration, Application Load Balancer health checks, Auto Scaling Group self-healing, infrastructure as code, budget monitoring, and full resource lifecycle management. The review identified several improvement opportunities, including distributed tracing, user experience telemetry, formal cloud financial governance processes, and sustainability-driven Region selection. These findings were intentionally accepted as out of scope for this single-developer educational project and reflect enterprise-scale recommendations rather than gaps in the project's stated objectives. The review served as a final architecture validation exercise and demonstrated the ability to assess AWS workloads using the same framework employed in professional AWS architecture reviews.
+  - AWS Well-Architected Framework review completed against the EC2 architecture
+  - Workload evaluated across all six Well-Architected pillars
+  - Existing architecture validated against AWS best practices
+  - Improvement opportunities identified for distributed tracing, telemetry, and enterprise governance processes
+
+- Cost Visibility & Budget Governance
+  - AWS Budget alerts reviewed and validated
+  - Cost Explorer used to review service-level spending across project resources
+  - Cost governance workflow validated through deploy → validate → destroy lifecycle discipline
+  - Cost allocation tag strategy reviewed for deployed resources
 
 ---
 
