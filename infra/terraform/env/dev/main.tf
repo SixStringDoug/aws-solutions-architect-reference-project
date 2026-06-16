@@ -37,6 +37,8 @@ module "rds" {
 
   db_name = "tasktrackerdevpostgres"
 
+  backup_retention_period = var.rds_backup_retention_period
+
   # Cost toggles (default cheap)
   multi_az                    = false
   use_managed_master_password = false

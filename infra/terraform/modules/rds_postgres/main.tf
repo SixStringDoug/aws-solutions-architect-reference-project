@@ -53,7 +53,7 @@ resource "aws_db_instance" "this_standard" {
   multi_az            = var.multi_az
   publicly_accessible = true
 
-  backup_retention_period = 1
+  backup_retention_period = var.backup_retention_period
   deletion_protection     = false
   skip_final_snapshot     = true
   apply_immediately       = true

@@ -53,3 +53,9 @@ variable "allowed_cidr" {
   type    = string
   default = "0.0.0.0/32"
 }
+
+variable "backup_retention_period" {
+  description = "Number of days to retain automated RDS backups. Low value is used for cost-controlled dev workloads."
+  type        = number
+  default     = 1
+}

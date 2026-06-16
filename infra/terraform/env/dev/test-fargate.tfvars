@@ -11,6 +11,8 @@ account_id = "403951654678"
 
 container_image = "403951654678.dkr.ecr.us-east-2.amazonaws.com/tasktracker-dev-backend:ph4"
 
+rds_backup_retention_period = 1
+
 # -----------------------------
 # Fargate Architecture (Active)
 # -----------------------------

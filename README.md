@@ -526,6 +526,12 @@ No billable infrastructure deployed during Phase 1.
   - Cost governance workflow validated through deploy → validate → destroy lifecycle discipline
   - Cost allocation tag strategy reviewed for deployed resources
 
+- RDS Backup & Snapshot Strategy
+  - RDS automated backup retention exposed as a Terraform variable
+  - Low-cost one-day retention retained for the dev workload
+  - Final snapshots remain disabled during destroy to preserve clean teardown behavior
+  - AWS Backup plans deferred as unnecessary for this single-developer educational project
+
 ---
 
 ## 🧠 Key Architectural Lessons Learned

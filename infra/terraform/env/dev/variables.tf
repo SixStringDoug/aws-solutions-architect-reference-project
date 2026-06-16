@@ -42,6 +42,12 @@ variable "db_name" {
   type        = string
 }
 
+variable "rds_backup_retention_period" {
+  description = "Number of days to retain automated RDS backups for the dev RDS instance."
+  type        = number
+  default     = 1
+}
+
 # -----------------------------
 # Compute Toggles
 # -----------------------------
