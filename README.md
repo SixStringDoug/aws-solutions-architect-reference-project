@@ -539,6 +539,13 @@ No billable infrastructure deployed during Phase 1.
   - Optional SSE-KMS and CloudTrail S3 data event configurations retained as future production-oriented enhancements
   - AWS Backup, cross-region replication, and Object Lock deferred as unnecessary for this destroyable dev workload
 
+- Safe CI Validation Workflow
+  - GitHub Actions workflow added for backend build validation
+  - Backend artifact build integrated into Terraform validation workflow
+  - Terraform formatting and validation checks added
+  - CI intentionally avoids AWS deployment to prevent accidental resource creation
+  - Workflow supports both EC2 and Fargate paths by validating shared application and infrastructure code
+
 ---
 
 ## 🧠 Key Architectural Lessons Learned
