@@ -33,6 +33,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Build backend artifact for Terraform validation
+        working-directory: backend/tasktracker
+        run: |
+          ./mvnw clean package -DskipTests
+          mkdir -p ../../artifacts
+          cp target/*.jar ../../artifacts/tasktracker.jar
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
