@@ -532,6 +532,13 @@ No billable infrastructure deployed during Phase 1.
   - Final snapshots remain disabled during destroy to preserve clean teardown behavior
   - AWS Backup plans deferred as unnecessary for this single-developer educational project
 
+- S3 Storage Recovery Review
+  - S3 versioning retained to support object recovery
+  - Lifecycle rules retained to control long-term dev storage costs
+  - Public access block, SSE-S3 encryption, and secure transport enforcement reviewed and validated
+  - Optional SSE-KMS and CloudTrail S3 data event configurations retained as future production-oriented enhancements
+  - AWS Backup, cross-region replication, and Object Lock deferred as unnecessary for this destroyable dev workload
+
 ---
 
 ## 🧠 Key Architectural Lessons Learned
