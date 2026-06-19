@@ -546,6 +546,15 @@ No billable infrastructure deployed during Phase 1.
   - CI intentionally avoids AWS deployment to prevent accidental resource creation
   - Workflow supports both EC2 and Fargate paths by validating shared application and infrastructure code
 
+- EC2 Deployment Automation Script
+
+  - Deployment helper script added for repeatable EC2 lifecycle operations
+  - Supports bootstrap, validation, deployment, and destroy workflows
+  - Full deploy and full destroy orchestration added for one-command environment management
+  - Default execution path performs safe full validation without deploying application infrastructure
+  - All script actions validated through end-to-end execution testing
+
+
 ---
 
 ## 🧠 Key Architectural Lessons Learned
@@ -605,7 +614,7 @@ This confirms a **production-aligned, architecture-agnostic deployment model**.
 
 ### The project is now ready for:
 
-### ⏭️ Phase 7: Governance, Automation & Cost Management
+### ⏭️ Phase 8: Full End-to-End Validation
 
 ---
 
