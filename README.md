@@ -167,6 +167,23 @@ cd infra/terraform/bootstrap/state
 terraform destroy
 ```
 
+### EC2 Deployment Automation
+
+A deployment helper script is available for common EC2 lifecycle operations:
+
+- full-validate
+- full-deploy
+- full-destroy
+
+The script automates Terraform bootstrap, validation, deployment, and teardown workflows while preserving the underlying manual deployment process documented above.
+
+Example:
+```bash
+./infra/scripts/deploy-ec2.sh full-validate
+./infra/scripts/deploy-ec2.sh full-deploy
+./infra/scripts/deploy-ec2.sh full-destroy
+```
+
 ---
 
 ## 🚀 Local Development
