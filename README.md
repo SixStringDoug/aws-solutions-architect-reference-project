@@ -27,6 +27,8 @@ The goal is to demonstrate **architectural tradeoffs**, not application complexi
 
 The frontend exists only to exercise the backend in real AWS environments.
 
+For AWS browser-based validation, the React frontend is packaged into the Spring Boot application artifact and served by the same application deployment used by both EC2 and ECS Fargate architectures.
+
 ---
 
 ## 🗂 Repository Structure
@@ -47,6 +49,8 @@ aws-saa-project-2/
 │   │   └── templates/
 │   ├── docs/                       # IaC design standards, conventions, and deployment guidance
 │   ├── scripts/                    # Deployment helper scripts
+│   │   ├── deploy-ec2.sh
+│   │   ├── deploy-fargate.sh
 │   │   └── push-backend-image.sh
 │   └── terraform/                  # Terraform orchestration (bootstrap state, env composition, reusable modules)
 │       ├── bootstrap/
@@ -182,6 +186,24 @@ Example:
 ./infra/scripts/deploy-ec2.sh full-validate
 ./infra/scripts/deploy-ec2.sh full-deploy
 ./infra/scripts/deploy-ec2.sh full-destroy
+```
+
+### Fargate Deployment Automation
+
+A deployment helper script is available for common ECS Fargate lifecycle operations:
+
+- full-validate
+- full-deploy
+- full-destroy
+
+The script automates Terraform bootstrap, validation, ECS deployment orchestration, CloudFormation activation, container publication, and teardown workflows while preserving the underlying deployment process documented above.
+
+Example:
+
+```bash
+./infra/scripts/deploy-fargate.sh full-validate
+./infra/scripts/deploy-fargate.sh full-deploy
+./infra/scripts/deploy-fargate.sh full-destroy
 ```
 
 ---
@@ -529,7 +551,6 @@ No billable infrastructure deployed during Phase 1.
   - Full ALB → private EC2 → RDS CRUD validation completed
   - Full deploy → validate → destroy lifecycle validated after resiliency migration
 
-
 ### ✅ Phase 7: Governance, Automation & Cost Management
 - AWS Well-Architected Tool Review
   - AWS Well-Architected Framework review completed against the EC2 architecture
@@ -564,13 +585,43 @@ No billable infrastructure deployed during Phase 1.
   - Workflow supports both EC2 and Fargate paths by validating shared application and infrastructure code
 
 - EC2 Deployment Automation Script
-
   - Deployment helper script added for repeatable EC2 lifecycle operations
   - Supports bootstrap, validation, deployment, and destroy workflows
   - Full deploy and full destroy orchestration added for one-command environment management
   - Default execution path performs safe full validation without deploying application infrastructure
   - All script actions validated through end-to-end execution testing
 
+### ✅ Phase 8: Full End-to-End Validation
+- EC2 path
+  - Browser-based validation completed through the public ALB
+  - React frontend successfully served from the AWS-hosted application
+  - Full CRUD workflow validated through the deployed UI
+  - RDS-backed persistence validated through browser interactions
+  - Full deploy → validate → destroy lifecycle revalidated after frontend packaging changes
+
+- Fargate path
+  - Browser-based validation completed through the public ALB
+  - React frontend successfully served from the AWS-hosted application
+  - Full CRUD workflow validated through the deployed UI
+  - RDS-backed persistence validated through browser interactions
+  - Full deploy → validate → destroy lifecycle revalidated after frontend packaging changes
+
+- Application packaging
+  - React frontend packaged into the Spring Boot application artifact
+  - Shared application artifact validated successfully across both EC2 and ECS Fargate architectures
+  - Browser-based validation no longer requires a separately running local frontend
+
+- Fargate Deployment Automation Script
+  - Deployment helper script added for repeatable Fargate lifecycle operations
+  - Supports bootstrap, validation, deployment, publication, service deployment, and destroy workflows
+  - Full deploy and full destroy orchestration added for one-command environment management
+  - Default execution path performs safe full validation without deploying application infrastructure
+  - All script actions validated through end-to-end execution testing
+
+- Architecture validation
+  - ECS service deployment repeatability validated through repeated service deployment execution
+  - No residual infrastructure dependencies identified between compute models
+  - Project architecture validated end-to-end from browser UI through application tier and RDS persistence layer
 
 ---
 
@@ -624,14 +675,12 @@ Both compute paths have been fully validated from a **clean destroyed state**:
 - ✅ CloudWatch logging validated independently for both EC2 and Fargate paths
 - ✅ No residual dependencies between compute models
 - ✅ Full clean-room rebuild validation completed for both architectures
+- ✅ Browser-based React UI validation completed through ALB
+- ✅ Full CRUD workflow validated through deployed UI
+- ✅ RDS-backed persistence validated through browser workflow
+- ✅ Shared application artifact validated successfully across EC2 and ECS Fargate architectures
 
 This confirms a **production-aligned, architecture-agnostic deployment model**.
-
----
-
-### The project is now ready for:
-
-### ⏭️ Phase 8: Full End-to-End Validation
 
 ---
 
