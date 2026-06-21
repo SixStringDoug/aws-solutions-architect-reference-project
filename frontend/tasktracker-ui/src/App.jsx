@@ -94,7 +94,7 @@ export default function App() {
       <header className="header">
         <h1>TaskTracker</h1>
         <p className="sub">
-          Simple CRUD UI for AWS deployments (EC2 / Fargate / Beanstalk).
+          Simple CRUD UI for AWS deployments (EC2 / Fargate).
         </p>
       </header>
 
