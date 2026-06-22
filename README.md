@@ -1,10 +1,10 @@
-# AWS SAA Project – Study App (SAA-C03)
+# AWS Solutions Architect Reference Architecture Project
 
-This repository contains a hands-on study project designed to reinforce concepts from the  
-**AWS Certified Solutions Architect – Associate (SAA-C03)** exam.
+This repository contains a hands-on AWS architecture project created while preparing for the **AWS Certified Solutions Architect – Associate (SAA-C03)** exam.
 
-The project centers on a **single, intentionally simple full-stack CRUD application** that is deployed multiple times using different AWS compute and deployment models.  
-The goal is to demonstrate **architectural tradeoffs**, not application complexity.
+The project demonstrates deployment of the **same Spring Boot application artifact** across both **Amazon EC2** and **Amazon ECS Fargate** architectures using **Terraform**, **CloudFormation**, **RDS**, **S3**, **IAM**, **SSM Parameter Store**, **CloudWatch**, and deployment automation.
+
+The application itself is intentionally simple. The primary goal is to demonstrate AWS architectural design, infrastructure automation, operational validation, and architectural tradeoffs rather than application complexity.
 
 ---
 
@@ -33,7 +33,7 @@ For AWS browser-based validation, the React frontend is packaged into the Spring
 
 ## 🗂 Repository Structure
 ```
-aws-saa-project-2/
+aws-solutions-architect-reference-project/
 ├── artifacts/                      # Built JAR artifacts
 ├── backend/                        # Spring Boot CRUD API (TaskTracker)
 │   └── tasktracker/
@@ -686,8 +686,12 @@ This confirms a **production-aligned, architecture-agnostic deployment model**.
 
 ## 📚 Reference
 
-- AWS Certified Solutions Architect – Associate (SAA-C03)
+- AWS Certified Solutions Architect – Associate
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;https://aws.amazon.com/certification/certified-solutions-architect-associate/
+
+- AWS Well-Architected Framework
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;https://aws.amazon.com/architecture/well-architected/
 
 ---
